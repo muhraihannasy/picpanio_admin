@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  height: 1000rem;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+
+  @apply px-6;
+}
+
+.list-image,
+.list-album {
+  scrollbar-color: #dbdbdb rgb(237, 237, 237);
+  scrollbar-width: thin;
+}
+
+.list-image::-webkit-scrollbar,
+.list-album::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.list-image::-webkit-scrollbar-track .list-album::-webkit-scrollbar-track {
+  border-radius: 100vh;
+  background: #f7f4ed;
+}
+
+.list-image::-webkit-scrollbar-thumb,
+.list-album::-webkit-scrollbar-thumb {
+  background: #dbdbdb;
+  border: 3px solid #f6f7ed;
+  @apply transition-all;
+}
+
+.list-image::-webkit-scrollbar-thumb:hover,
+.list-album::-webkit-scrollbar-thumb:hover {
+  background: #c0a0b9;
+}
+
+.loading-images {
+  position: absolute;
+  top: 25%;
+  -webkit-animation: spin 4s linear infinite;
+  -moz-animation: spin 4s linear infinite;
+  animation: spin 4s linear infinite;
+}
+@-moz-keyframes spin {
+  100% {
+    -moz-transform: rotate(360deg);
+  }
+}
+@-webkit-keyframes spin {
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+@keyframes spin {
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
