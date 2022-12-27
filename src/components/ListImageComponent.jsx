@@ -14,7 +14,7 @@ const ListImageComponent = ({ listItem, onClick, ref }) => {
         listItem.map((item, index) => {
           return (
             <li
-              className="border-b flex justify-between px-6 py-2 cursor-pointer item-image"
+              className="border-b flex justify-between gap-4 px-6 py-2 cursor-pointer item-image"
               key={index}
               onClick={() => {
                 onClick();
@@ -23,7 +23,10 @@ const ListImageComponent = ({ listItem, onClick, ref }) => {
             >
               <div className="flex items-center gap-3 item-image">
                 <img src={image} alt="" className="w-[30px] item-image" />
-                <h3 className="text-[12px] item-image">Sample image one</h3>
+                <h3 className="text-[12px] item-image">
+                  Sample image one asdiashdihas ihasd ihas diash diasd iasd
+                  hasid
+                </h3>
               </div>
 
               <div className="flex items-center gap-[2rem] item-image">

@@ -2,7 +2,7 @@ import { MdArrowForwardIos } from "react-icons/md";
 
 const ListAlbumComponent = ({ listItem, setCurrentAlbum }) => {
   return (
-    <div className="w-[240px] h-[591px] bg-[#F5F5F5] py-[5px] rounded-tl-[6px] rounded-bl-[6px] rounded-tr-[6px] border-l-2 border-b-2 overflow-auto list-album">
+    <div className="w-[240px] h-[591px] bg-[#F5F5F5] py-[5px] rounded-tl-[6px] rounded-bl-[6px] rounded-tr-[6px] border-l-2 border-b-2 overflow-auto list-album absolute opacity-0">
       <ul>
         {listItem &&
           listItem.map((item, index) => {

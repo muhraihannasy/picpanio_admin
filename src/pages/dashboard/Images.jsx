@@ -5,23 +5,26 @@ import { GoTrashcan } from "react-icons/go";
 import { MdAddCircle } from "react-icons/md";
 import { IoCloudUpload } from "react-icons/io5";
 import { FiSearch } from "react-icons/fi";
-
-// Utils
-import { ListAlbum, ListImage } from "../../util/Data";
+import { IoIosAlbums } from "react-icons/io";
+import { BsFillFolderFill } from "react-icons/bs";
 
 // Component
 import HeaderDashboardComponent from "../../components/HeaderDashboardComponent";
 import PlanComponent from "../../components/planComponent";
 import ListAlbumComponent from "../../components/ListAlbumComponent";
 import ListImageComponent from "../../components/ListImageComponent";
+import ModalAddAlbumComponent from "../../components/ModalAddAlbumComponent";
+import ModalImageDetailComponent from "../../components/ModalImageDetailComponent";
 
 // images
 import repeatIcon from "../../assets/images/repeat-icon.png";
-import ModalAddAlbumComponent from "../../components/ModalAddAlbumComponent";
+import galeryIcon from "../../assets/images/icon/gallery.png";
+
+// Util
 import { BASEURL, requestSetting } from "../../util/Api";
-import ModalImageDetailComponent from "../../components/ModalImageDetailComponent";
 
 const Images = () => {
+  const [innerWidth, setInnerWidth] = useState(window.innerWidth);
   const [isLoading, setIsLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -108,6 +111,16 @@ const Images = () => {
     };
   }, [isOpenModalImage]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      setInnerWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  });
+
   return (
     <div>
       {/* Header */}
@@ -176,20 +189,38 @@ const Images = () => {
         </section>
 
         <section className="mt-[48px]">
-          <div className="container flex items-center justify-between text-white gap-10">
+          <div className="container flex items-center justify-between text-white gap-10 max-[798px]:gap-3">
             <button
-              className="flex items-center justify-between px-4 bg-primary w-[194px] rounded-[8px] h-[36px] flex-2"
+              className="flex items-center justify-between px-4 bg-primary w-[194px] max-[798px]:w-max rounded-[8px] h-[36px] flex-2"
               onClick={() => setOpenModal(true)}
             >
-              <h3>Add Album</h3>
-              <MdAddCircle className="text-[1.2rem]" />
+              {innerWidth >= 798 && <h3>Add Album</h3>}
+
+              <div className={`${innerWidth <= 798 ? "hidden" : "block"}`}>
+                <MdAddCircle className="text-[1.2rem]" />
+              </div>
+
+              <div className={`${innerWidth >= 798 ? "hidden" : "block"}`}>
+                <IoIosAlbums className="text-[1.2rem]" />
+              </div>
             </button>
 
             <div className="flex items-center flex-1 gap-3">
-              <button className="flex items-center justify-between px-4 bg-eighty w-[164px] rounded-[8px] h-[36px] flex-2">
-                <h3>Add Folder</h3>
-                <MdAddCircle className="text-[1.2rem]" />
+              <button
+                className="flex items-center justify-between px-4 bg-eighty w-[194px] max-[798px]:w-max rounded-[8px] h-[36px] flex-2"
+                onClick={() => setOpenModal(true)}
+              >
+                {innerWidth >= 798 && <h3>Add Album</h3>}
+
+                <div className={`${innerWidth <= 798 ? "hidden" : "block"}`}>
+                  <MdAddCircle className="text-[1.2rem]" />
+                </div>
+
+                <div className={`${innerWidth >= 798 ? "hidden" : "block"}`}>
+                  <BsFillFolderFill className="text-[1.2rem]" />
+                </div>
               </button>
+
               <div className="h-[38px] flex items-center justify-between flex-1 border-2 px-3 border-seventy rounded-[8px]">
                 <input
                   type="text"
@@ -198,6 +229,9 @@ const Images = () => {
                 />
                 <FiSearch className="text-eighty text-[1.3rem] flex-2" />
               </div>
+            </div>
+            <div className="w-[2.5rem] h-[2.5rem] bg-primary shadow-sm rounded-xl py-2  flex items-center justify-center">
+              <img src={galeryIcon} alt="" className="object-cover w-[45%]" />
             </div>
           </div>
 
@@ -225,9 +259,7 @@ const Images = () => {
                   </div>
                 )}
 
-                {isLoading && (
-                  <h2 className="text-center pt-[5rem]">Loading ...</h2>
-                )}
+                {isLoading && <h2 className="text-center">Loading ...</h2>}
                 {!isLoading && images.length > 1 && (
                   <ListImageComponent
                     listItem={images}
