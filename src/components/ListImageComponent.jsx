@@ -6,6 +6,7 @@ import { GoTrashcan } from "react-icons/go";
 
 // Images
 import image from "../assets/images/images.png";
+import CopyText from "../util/CopyText";
 
 const ListImageComponent = ({ listItem, onClick, ref }) => {
   return (
@@ -16,12 +17,14 @@ const ListImageComponent = ({ listItem, onClick, ref }) => {
             <li
               className="border-b flex justify-between gap-4 px-6 py-2 cursor-pointer item-image"
               key={index}
-              onClick={() => {
-                onClick();
-              }}
               ref={ref}
             >
-              <div className="flex items-center gap-3 item-image">
+              <div
+                className="flex items-center gap-3 item-image flex-1"
+                onClick={() => {
+                  onClick();
+                }}
+              >
                 <img src={image} alt="" className="w-[30px] item-image" />
                 <h3 className="text-[12px] item-image">
                   Sample image one asdiashdihas ihasd ihas diash diasd iasd
@@ -35,11 +38,15 @@ const ListImageComponent = ({ listItem, onClick, ref }) => {
                 </h3>
 
                 <div className="flex items-center gap-2">
-                  <Link to="" className="text-[12px] text-primary">
+                  <a
+                    href={item.url}
+                    className="text-[12px] text-primary"
+                    target="_blank"
+                  >
                     View URL
-                  </Link>
+                  </a>
 
-                  <button>
+                  <button onClick={() => CopyText(item.url)}>
                     <IoCopyOutline />
                   </button>
                 </div>

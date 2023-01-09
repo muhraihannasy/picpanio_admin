@@ -12,6 +12,8 @@ module.exports = {
         sixty: "#E9EB83",
         seventy: "#D9D9D9",
         eighty: "#666666",
+        ninety: "#F5F5F5",
+        ten: "#18BB94",
       },
       fontFamily: {
         maven: ["Maven Pro", "sans-serif"],

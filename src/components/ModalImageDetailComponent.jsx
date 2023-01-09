@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import copy from "react-copy-to-clipboard";
+
+// Util
+import CopyText from "../util/CopyText";
 
 // Images
 import images from "../assets/images/images-dummy2.png";
@@ -16,9 +18,18 @@ const ModalImageDetailComponent = ({ isOpenModalImage }) => {
     darken: "",
     blur: "",
   });
+  const [imageUrl, setImageUrl] = useState("");
+  const [copyUrl, setCopyUrl] = useState("");
   const urlRef = useRef();
 
-  useEffect(() => {}, [imageProperties]);
+  useEffect(() => {
+    setImageUrl(
+      `https://img.picpan.io/tyuiwncgvbnmskbnv-ghjkdbqo/ghudlkjbyvybundhycvbnmfihj-bnd-bndfu.jpg`
+    );
+  }, []);
+  useEffect(() => {
+    setCopyUrl(urlRef.current.textContent);
+  }, [imageProperties]);
 
   return (
     <aside
@@ -31,10 +42,7 @@ const ModalImageDetailComponent = ({ isOpenModalImage }) => {
           <h2 className="text-[14px] text-primary font-bold mb-[10px]">
             Sample image one
           </h2>
-          <p className="text-[10px] text-eighty">
-            https://img.picpan.io/tyuiwn
-            cgvbnmskbnv-ghjkdbqo/ghudlkjbyvybundhycvbnmfihj-bnd-bndfu.jpg
-          </p>
+          <p className="text-[10px] text-eighty">{imageUrl}</p>
 
           <p className="text-primary text-[10px] cursor-pointer mt-[0.5rem]">
             Copy URL
@@ -206,8 +214,7 @@ const ModalImageDetailComponent = ({ isOpenModalImage }) => {
 
       <div className="mt-[1.5rem] bg-[#F5F5F5] border border-seventy rounded-[4px] py-3 px-3">
         <p className="text-[10px] text-eighty" ref={urlRef}>
-          https://img.picpan.io/tyuiwn
-          cgvbnmskbnv-ghjkdbqo/ghudlkjbyvybundhycvbnmfihj-bnd-bndfu.jpg?
+          {imageUrl}?
           {imageProperties.width !== "" && (
             <>
               w=<span className="font-bold">{imageProperties.width}</span>&
@@ -254,7 +261,10 @@ const ModalImageDetailComponent = ({ isOpenModalImage }) => {
         </p>
       </div>
 
-      <button className="flex items-center justify-center gap-2 bg-eighty text-white font-bold w-[96px] h-[36px] rounded-[8px] ml-auto mt-[1.5rem]">
+      <button
+        className="flex items-center justify-center gap-2 bg-eighty text-white font-bold w-[96px] h-[36px] rounded-[8px] ml-auto mt-[1.5rem]"
+        onClick={() => CopyText(copyUrl == "?" ? imageUrl : copyUrl)}
+      >
         Copy
         <IoCopySharp />
       </button>

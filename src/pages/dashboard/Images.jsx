@@ -15,22 +15,28 @@ import ListAlbumComponent from "../../components/ListAlbumComponent";
 import ListImageComponent from "../../components/ListImageComponent";
 import ModalAddAlbumComponent from "../../components/ModalAddAlbumComponent";
 import ModalImageDetailComponent from "../../components/ModalImageDetailComponent";
+import PopupAdd from "../../components/popup/PopupAdd";
 
 // images
 import repeatIcon from "../../assets/images/repeat-icon.png";
 import galeryIcon from "../../assets/images/icon/gallery.png";
+import { BASEURL, requestSetting } from "../../util/Api";
+import PopupEdit from "../../components/popup/PopupEdit";
 
 // Util
-import { BASEURL, requestSetting } from "../../util/Api";
 
 const Images = () => {
   const [innerWidth, setInnerWidth] = useState(window.innerWidth);
   const [isLoading, setIsLoading] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
+  const [openModalAdd, setOpenModalAdd] = useState(false);
+  const [openModalEdit, setOpenModalEdit] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isOpenModalImage, setIsOpenModalImage] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [popup, setPopup] = useState({ field: "", url: "", value: "" });
   const [imagesLength, setImagesLength] = useState(0);
   const [currentAlbum, setCurrentAlbum] = useState("");
+  const [copyUrl, setCopyUrl] = useState("");
   const [albums, setAlbums] = useState([]);
   const [images, setImages] = useState([]);
   const imageRef = useRef();
@@ -76,7 +82,7 @@ const Images = () => {
     (async () => {
       getAlbums();
     })();
-  }, []);
+  }, [lastRefresh]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -126,9 +132,18 @@ const Images = () => {
       {/* Header */}
       <HeaderDashboardComponent />
       {/* Modal */}
-      <ModalAddAlbumComponent
-        setOpenModal={setOpenModal}
-        openModal={openModal}
+      <PopupAdd
+        setOpenModal={setOpenModalAdd}
+        openModal={openModalAdd}
+        field={popup.field}
+        url={popup.url}
+        setLastRefresh={setLastRefresh}
+      />
+      <PopupEdit
+        setOpenModal={setOpenModalEdit}
+        openModal={openModalEdit}
+        popup={popup}
+        setLastRefresh={setLastRefresh}
       />
       <ModalImageDetailComponent
         setIsOpenModalImage={setIsOpenModalImage}
@@ -146,53 +161,47 @@ const Images = () => {
       {/* Main Content */}
       <main>
         <section className="mt-[37px]">
-          {!isUploading && (
-            <div className="container flex flex-wrap items-center lg:justify-between justify-center gap-[2rem]  text-fivety ">
-              <div>
-                <h2 className="font-bold text-[18px] mb-[5px]">NSTEK</h2>
-                <p>nstek.sg.picpan.io</p>
-              </div>
-              <div>
-                <h2 className="font-bold text-[14px] mb-[5px] ">Plan</h2>
-                <PlanComponent
-                  text="Premium"
-                  bg="bg-fourty"
-                  color="fivety"
-                  styleFont="regular"
-                />
-              </div>
-              <div>
-                <h2 className="font-bold text-[14px] mb-[5px]">NSTEK</h2>
-                <p className="text-[14px]">Asia - Singapore</p>
-              </div>
-              <div>
-                <h2 className="font-bold text-[14px] mb-[5px]">
-                  Storage usage
-                </h2>
-                <p className="text-[14px]">32% (31 GB of 100 GB)</p>
-              </div>
+          <div className="container flex flex-wrap items-center lg:justify-between justify-center gap-[2rem]  text-fivety ">
+            <div>
+              <h2 className="font-bold text-[18px] mb-[5px]">NSTEK</h2>
+              <p>nstek.sg.picpan.io</p>
+            </div>
+            <div>
+              <h2 className="font-bold text-[14px] mb-[5px] ">Plan</h2>
+              <PlanComponent
+                text="Premium"
+                bg="bg-fourty"
+                color="fivety"
+                styleFont="regular"
+              />
+            </div>
+            <div>
+              <h2 className="font-bold text-[14px] mb-[5px]">NSTEK</h2>
+              <p className="text-[14px]">Asia - Singapore</p>
+            </div>
+            <div>
+              <h2 className="font-bold text-[14px] mb-[5px]">Storage usage</h2>
+              <p className="text-[14px]">32% (31 GB of 100 GB)</p>
+            </div>
 
-              <div className="flex items-center text-[14px] gap-1 text-third cursor-pointer">
-                <h2>Delete space</h2>
-                <GoTrashcan className="text-[1.2rem]" />
-              </div>
+            <div className="flex items-center text-[14px] gap-1 text-third cursor-pointer">
+              <h2>Delete space</h2>
+              <GoTrashcan className="text-[1.2rem]" />
             </div>
-          )}
-          {isUploading && (
-            <div className="container flex flex-wrap items-center lg:justify-between justify-center gap-[2rem] text-fivety ">
-              <div className="bg-[#F5F5F5] w-full mx-auto relative h-[62px] rounded-[4px] border-dotted border-[2px] border-eighty flex items-center justify-between px-[1rem] ">
-                <div className="flex items-center gap-2">{loadingImages}</div>
-                <h2 className="text-[14px]">uploading your images....</h2>
-              </div>
-            </div>
-          )}
+          </div>
         </section>
 
         <section className="mt-[48px]">
           <div className="container flex items-center justify-between text-white gap-10 max-[798px]:gap-3">
             <button
               className="flex items-center justify-between px-4 bg-primary w-[194px] max-[798px]:w-max rounded-[8px] h-[36px] flex-2"
-              onClick={() => setOpenModal(true)}
+              onClick={() => {
+                setPopup({
+                  field: "Album",
+                  url: "albums",
+                });
+                setOpenModalAdd(true);
+              }}
             >
               {innerWidth >= 798 && <h3>Add Album</h3>}
 
@@ -208,9 +217,15 @@ const Images = () => {
             <div className="flex items-center flex-1 gap-3">
               <button
                 className="flex items-center justify-between px-4 bg-eighty w-[194px] max-[798px]:w-max rounded-[8px] h-[36px] flex-2"
-                onClick={() => setOpenModal(true)}
+                onClick={() => {
+                  setPopup({
+                    field: "Folder",
+                    url: "folders",
+                  });
+                  setOpenModalAdd(true);
+                }}
               >
-                {innerWidth >= 798 && <h3>Add Album</h3>}
+                {innerWidth >= 798 && <h3>Add Folder</h3>}
 
                 <div className={`${innerWidth <= 798 ? "hidden" : "block"}`}>
                   <MdAddCircle className="text-[1.2rem]" />
@@ -230,9 +245,9 @@ const Images = () => {
                 <FiSearch className="text-eighty text-[1.3rem] flex-2" />
               </div>
             </div>
-            <div className="w-[2.5rem] h-[2.5rem] bg-primary shadow-sm rounded-xl py-2  flex items-center justify-center">
+            {/* <div className="w-[2.5rem] h-[2.5rem] bg-primary shadow-sm rounded-xl py-2  flex items-center justify-center">
               <img src={galeryIcon} alt="" className="object-cover w-[45%]" />
-            </div>
+            </div> */}
           </div>
 
           <div className="container pt-[18px]">
@@ -241,6 +256,8 @@ const Images = () => {
                 listItem={albums}
                 setCurrentAlbum={setCurrentAlbum}
                 ref={imageRef}
+                setOpenModal={setOpenModalEdit}
+                setPopup={setPopup}
               />
 
               <div className="w-full flex-1">
@@ -256,6 +273,16 @@ const Images = () => {
                       multiple={true}
                       onChange={(e) => handleUpload(e.target.files)}
                     />
+                  </div>
+                )}
+                {isUploading && (
+                  <div className="container flex flex-wrap items-center lg:justify-between justify-center gap-[2rem]text-fivety">
+                    <div className="bg-[#F5F5F5] w-full mx-auto relative h-[62px] rounded-[4px] border-dotted border-[2px] border-eighty flex items-center justify-between px-[1rem] mt-[20px]">
+                      <div className="flex items-center gap-2">
+                        {loadingImages}
+                      </div>
+                      <h2 className="text-[14px]">uploading your images....</h2>
+                    </div>
                   </div>
                 )}
 

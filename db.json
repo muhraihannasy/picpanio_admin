@@ -1,8 +1,8 @@
 {
   "albums": [
     {
-      "id": 1,
-      "name": "Architect Web "
+      "name": "Architect Webs",
+      "id": 1
     },
     {
       "id": 2,
@@ -11,10 +11,6 @@
     {
       "id": 3,
       "name": "E-Commerce ABC (client)"
-    },
-    {
-      "id": 30233165007910,
-      "name": "r"
     }
   ],
   "images": [
@@ -22,7 +18,7 @@
       "name": "Sample Image One",
       "date": "18/10/22 22:10",
       "album_id": 1,
-      "url": ""
+      "url": "/asd"
     },
     {
       "name": "Sample Image One",
