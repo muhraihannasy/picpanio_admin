@@ -11,6 +11,7 @@ import Images from "./pages/dashboard/images";
 import Spaces from "./pages/dashboard/Spaces";
 import CreateSpace from "./pages/dashboard/CreateSpace";
 import ApiIntegration from "./pages/dashboard/ApiIntegration";
+import Verified from "./pages/auth/Verified";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -21,12 +22,13 @@ function App() {
         {/* Auth */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/verify/register/:userid/:token" element={<Verified />} />
 
         {/* Dashboard */}
-        <Route path="/dashboard/images" element={<Images />} />
-        <Route path="/dashboard/integration" element={<ApiIntegration />} />
-        <Route path="/dashboard/spaces" element={<Spaces />} />
-        <Route path="/dashboard/create_space" element={<CreateSpace />} />
+        <Route path="/images" element={<Images />} />
+        <Route path="/integration" element={<ApiIntegration />} />
+        <Route path="/spaces" element={<Spaces />} />
+        <Route path="/create_space" element={<CreateSpace />} />
       </Routes>
     </div>
   );

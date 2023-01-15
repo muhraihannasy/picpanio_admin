@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { json, Link, useLocation, useNavigate } from "react-router-dom";
+import toast, { ToastBar, Toaster } from "react-hot-toast";
 
 // Icon
 import { AiOutlineGithub, AiOutlineGoogle } from "react-icons/ai";
@@ -7,22 +8,63 @@ import { AiOutlineGithub, AiOutlineGoogle } from "react-icons/ai";
 // Component
 import InputComponent from "../../components/InputComponent";
 import ButtonComponent from "../../components/ButtonComponent";
+import { apiRequest, BASEURL, requestSetting } from "../../util/Api";
+import Alert from "../../components/alert/alert";
+import Route from "../../util/Route";
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleForgotPassword = () => {
+    const body = {
+      email: formData.email,
+    };
+
+    apiRequest(
+      `${BASEURL}/auth/forgotpassword`,
+      requestSetting("POST", body)
+    ).then((res) => console.log(res));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData);
+
+    fetch(`${BASEURL}/auth/login`, requestSetting("POST", formData))
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.error) {
+          toast.custom(<Alert type="error" message={res.error} />);
+          return;
+        }
+
+        toast.custom(<Alert type="success" message="Successfuly Login" />);
+        localStorage.setItem("acctkn", res.token);
+
+        setTimeout(() => {
+          navigate(Route.DashboardSpaces, { replace: true });
+        }, 1000);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   };
+
   useEffect(() => {
-    document.body.style.background = "#CE1261";
+    if (location.pathname.includes("/login")) {
+      document.body.style.background = "#CE1261";
+    }
   });
+
   return (
     <div className="pb-[2rem]">
+      {/* Toast */}
+      <Toaster />
+
       <header className="container">
         <nav className="flex justify-between items-center text-[14px] text-white pt-[1rem]">
           <Link to="/login">Login</Link>
@@ -68,7 +110,13 @@ const Login = () => {
               />
 
               <div className="flex items-center justify-between mt-[15px]">
-                <Link className="text-white text-[14px]">forgot password?</Link>
+                <button
+                  className="text-white text-[14px]"
+                  onClick={() => handleForgotPassword()}
+                  type="button"
+                >
+                  forgot password?
+                </button>
                 <ButtonComponent
                   type="button"
                   text="Login"

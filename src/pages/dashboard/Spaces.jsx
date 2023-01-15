@@ -1,15 +1,46 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { apiRequest, BASEURL, requestSetting } from "../../util/Api";
 import { Link } from "react-router-dom";
 
 // Component
 import HeaderDashboardComponent from "../../components/HeaderDashboardComponent";
+import Route from "../../util/Route";
+import { IoMailOpenOutline } from "react-icons/io5";
+import { Toaster } from "react-hot-toast";
+import Loading from "../../components/loading";
 
 const Spaces = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [spaces, setSpaces] = useState([]);
   const [isUnverified, setIsUnverified] = useState(false);
 
+  function getUserInfo() {
+    apiRequest(`${BASEURL}/auth/account`, requestSetting("GET")).then((res) => {
+      const { user } = res;
+      if (user.status === "Pending") setIsUnverified(true);
+
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+      console.log(res);
+    });
+  }
+  useEffect(() => {
+    getUserInfo();
+  }, []);
+
+  useEffect(() => {
+    document.body.style.background = "#ffffff";
+  });
+
   return (
     <div>
+      {/* Toast */}
+      <Toaster />
+
+      {/* Loading */}
+      {isLoading && <Loading />}
+
       {/* Header */}
       <HeaderDashboardComponent />
 
@@ -17,6 +48,7 @@ const Spaces = () => {
       <main>
         <section>
           <div className="container">
+            {isUnverified && <Unverified />}
             <div>
               {spaces.length !== 0 ? (
                 <>
@@ -36,6 +68,20 @@ const Spaces = () => {
   );
 };
 
+const Unverified = () => {
+  return (
+    <div className="flex items-center justify-center gap-[1rem] bg-sixty text-eighty rounded-[8px] py-4 mt-[30px]">
+      <div className="text-[2rem]">
+        <IoMailOpenOutline />
+      </div>
+      <p>
+        Please confirm your email before create a Space. If you not receive
+        email yet, click <span className="text-third">resend email</span>
+      </p>
+    </div>
+  );
+};
+
 const NotHaveSpace = ({ isUnverified }) => {
   return (
     <div className=" h-[100vh] flex item-center justify-center">
@@ -45,7 +91,7 @@ const NotHaveSpace = ({ isUnverified }) => {
           className={` text-white text-center rounded-[8px] px-6 py-2 w-full font-bold ${
             isUnverified ? "bg-seventy cursor-default" : "bg-secondary"
           }`}
-          to={isUnverified ? "" : "/dashboard/create_space"}
+          to={isUnverified ? "" : Route.DashboardCreateSpace}
         >
           Create Space
         </Link>

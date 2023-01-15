@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // Icon
 import { AiOutlineGithub, AiOutlineGoogle } from "react-icons/ai";
@@ -7,18 +7,47 @@ import { AiOutlineGithub, AiOutlineGoogle } from "react-icons/ai";
 // Component
 import InputComponent from "../../components/InputComponent";
 import ButtonComponent from "../../components/ButtonComponent";
+import { BASEURL, requestSetting } from "../../util/Api";
+import { toast, Toaster } from "react-hot-toast";
+import Alert from "../../components/alert/alert";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
-    fullname: "",
+    name: "",
     email: "",
     password: "",
     passwordConfirmation: "",
   });
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData);
+
+    if (formData.password !== formData.passwordConfirmation) {
+      toast.custom(<Alert type="error" message="Password doesn't match" />);
+      return;
+    }
+
+    fetch(`${BASEURL}/auth/register`, requestSetting("POST", formData))
+      .then((res) => res.json())
+      .then((res) => {
+        const { statusCode, error, message } = res;
+        if (statusCode === 400 || statusCode === 500) {
+          toast.custom(<Alert type="error" message={message} />);
+          return;
+        }
+
+        toast.custom(
+          <Alert type="success" message="Successfully created Account" />
+        );
+        setTimeout(() => {
+          navigate("/login", { replace: true });
+        }, 1000);
+      })
+      .catch((e) => {
+        console.log(e);
+        return;
+      });
   };
 
   useEffect(() => {
@@ -26,6 +55,9 @@ const Signup = () => {
   });
   return (
     <div className="pb-[2rem]">
+      {/* Toast */}
+      <Toaster />
+
       <header className="container">
         <nav className="flex justify-between items-center text-[14px] text-fivety pt-[1rem]">
           <Link to="/signup" className="font-bold">
@@ -40,7 +72,6 @@ const Signup = () => {
           </p>
         </nav>
       </header>
-
       <main>
         <section>
           <div className="container pt-[54px]">
@@ -70,7 +101,7 @@ const Signup = () => {
               className="w-[300px] mx-auto mt-[20px] flex flex-col gap-5"
             >
               <InputComponent
-                field="fullname"
+                field="name"
                 label="Fullname"
                 type="text"
                 require={true}
