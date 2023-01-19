@@ -12,6 +12,7 @@ import Spaces from "./pages/dashboard/Spaces";
 import CreateSpace from "./pages/dashboard/CreateSpace";
 import ApiIntegration from "./pages/dashboard/ApiIntegration";
 import Verified from "./pages/auth/Verified";
+import ForgotPassword from "./pages/auth/ForgotPassword";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -23,11 +24,16 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify/register/:userid/:token" element={<Verified />} />
+        <Route
+          path="/verify/forgotpassword/:userid/:token"
+          element={<ForgotPassword />}
+        />
 
         {/* Dashboard */}
         <Route path="/images" element={<Images />} />
         <Route path="/integration" element={<ApiIntegration />} />
         <Route path="/spaces" element={<Spaces />} />
+        <Route path="/spaces/:spaceId" element={<Images />} />
         <Route path="/create_space" element={<CreateSpace />} />
       </Routes>
     </div>

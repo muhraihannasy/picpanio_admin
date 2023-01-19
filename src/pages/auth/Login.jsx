@@ -11,8 +11,10 @@ import ButtonComponent from "../../components/ButtonComponent";
 import { apiRequest, BASEURL, requestSetting } from "../../util/Api";
 import Alert from "../../components/alert/alert";
 import Route from "../../util/Route";
+import Loading from "../../components/loading";
 
 const Login = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -21,6 +23,8 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleForgotPassword = () => {
+    setIsLoading(true);
+
     const body = {
       email: formData.email,
     };
@@ -28,15 +32,22 @@ const Login = () => {
     apiRequest(
       `${BASEURL}/auth/forgotpassword`,
       requestSetting("POST", body)
-    ).then((res) => console.log(res));
+    ).then((res) => {
+      setIsLoading(false);
+      if (res.success) {
+        toast.custom(<Alert type="success" message="Check your email inbox" />);
+      }
+    });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
     fetch(`${BASEURL}/auth/login`, requestSetting("POST", formData))
       .then((res) => res.json())
       .then((res) => {
+        setIsLoading(false);
         if (res.error) {
           toast.custom(<Alert type="error" message={res.error} />);
           return;
@@ -64,6 +75,9 @@ const Login = () => {
     <div className="pb-[2rem]">
       {/* Toast */}
       <Toaster />
+
+      {/* Loading */}
+      {isLoading && <Loading />}
 
       <header className="container">
         <nav className="flex justify-between items-center text-[14px] text-white pt-[1rem]">

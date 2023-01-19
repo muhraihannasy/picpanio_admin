@@ -1,18 +1,21 @@
 import { useRef, useState } from "react";
+import { toast, Toaster } from "react-hot-toast";
+import Alert from "../../components/alert/alert";
 import HeaderDashboardComponent from "../../components/HeaderDashboardComponent";
+import Loading from "../../components/loading";
+import { BASEURL, requestSetting } from "../../util/Api";
+import Route from "../../util/Route";
 
 const CreateSpace = () => {
   const [space, setSpace] = useState({
     name: "",
+    slug: "",
     description: "",
     plan: "",
     region: "",
-    address: "",
-    billPeriode: "",
+    billPeriod: "",
   });
-  const [selectedPlan, setSelectedPlan] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState("");
-  const [selectedBill, setSelectedBill] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [terms, setTerms] = useState(false);
   const btnCreateSpaceRef = useRef();
 
@@ -20,8 +23,39 @@ const CreateSpace = () => {
     setTerms((prev) => !prev);
     btnCreateSpaceRef.current.disabled = terms ? true : false;
   }
+
+  function handleSubmit() {
+    fetch(`${BASEURL}/space/order`, requestSetting("POST", space))
+      .then((res) => res.json())
+      .then((res) => {
+        setIsLoading(false);
+        if (res.error) {
+          toast.custom(<Alert type="error" message={res.error} />);
+          return;
+        }
+
+        if (res.success) {
+          toast.custom(
+            <Alert type="success" message="Successfuly Created Space" />
+          );
+        }
+
+        setTimeout(() => {
+          navigate(Route.DashboardSpaces, { replace: true });
+        }, 1000);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  }
   return (
     <>
+      {/* Toast */}
+      <Toaster />
+
+      {/* Loading */}
+      {isLoading && <Loading />}
+
       {/* Header */}
       <HeaderDashboardComponent />
 
@@ -34,20 +68,9 @@ const CreateSpace = () => {
             </h2>
 
             <SpaceInformation space={space} setSpace={setSpace} />
-            <ChoosePlan
-              selectedPlan={selectedPlan}
-              setSelectedPlan={setSelectedPlan}
-            />
-            <ChooseRegion
-              selectedRegion={selectedRegion}
-              setSelectedRegion={setSelectedRegion}
-            />
-            <SettingSpace
-              selectedBill={selectedBill}
-              setSelectedBill={setSelectedBill}
-              space={space}
-              setSpace={setSpace}
-            />
+            <ChoosePlan space={space} setSpace={setSpace} />
+            <ChooseRegion space={space} setSpace={setSpace} />
+            <SettingSpace space={space} setSpace={setSpace} />
 
             <div className="mt-[4rem] md:ml-auto md:mx-0 mx-auto md:text-right text-center w-max">
               <h3 className="font-semibold text-eighty">Total Invoiice</h3>
@@ -72,6 +95,7 @@ const CreateSpace = () => {
                   terms ? "bg-secondary" : "bg-seventy"
                 }`}
                 ref={btnCreateSpaceRef}
+                onClick={handleSubmit}
               >
                 Create Space
               </button>
@@ -104,8 +128,10 @@ const SpaceInformation = ({ space, setSpace }) => {
             onChange={(e) =>
               setSpace({
                 ...space,
-                name: e.target.value.replace(/[^0-9a-zA-Z]+/gi, ""),
-                address: e.target.value.replace(/[^0-9a-zA-Z]+/gi, ""),
+                name: e.target.value.replace(/[^0-9a-zA-Z- ]+/gi, " "),
+                slug: e.target.value
+                  .replace(/[^0-9a-zA-Z_-]+/gi, "-")
+                  .toLowerCase(),
               })
             }
             value={space.name}
@@ -123,6 +149,9 @@ const SpaceInformation = ({ space, setSpace }) => {
             placeholder="Description"
             id="space_description"
             className="rounded-[8px] px-3 w-full border border-seventy focus:outline-none h-[38px]"
+            onChange={(e) => {
+              setSpace((prev) => ({ ...prev, description: e.target.value }));
+            }}
           />
         </div>
       </div>
@@ -130,7 +159,7 @@ const SpaceInformation = ({ space, setSpace }) => {
   );
 };
 
-const ChoosePlan = ({ selectedPlan, setSelectedPlan }) => {
+const ChoosePlan = ({ space, setSpace }) => {
   return (
     <div className="mb-[20px]">
       <h3 className="text-primary mb-[20px]">Choose your space plan</h3>
@@ -138,14 +167,14 @@ const ChoosePlan = ({ selectedPlan, setSelectedPlan }) => {
       <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-[1.5rem]">
         <div
           className={`bg-ninety rounded-[0.5rem] px-[4rem] py-[2rem] text-eighty cursor-pointer transition-all border  ${
-            selectedPlan == "Free" ? "border-primary" : "border-transparent"
+            space.plan === "Free" ? "border-primary" : "border-transparent"
           }`}
-          onClick={() => setSelectedPlan("Free")}
+          onClick={() => setSpace((prev) => ({ ...prev, plan: "Free" }))}
         >
           <div className="mb-[3rem]">
             <h3
               className={`font-semibold text-[20px] mb-[10px] ${
-                selectedPlan == "Free" && "text-primary"
+                space.plan === "Free" && "text-primary"
               }`}
             >
               Free
@@ -159,7 +188,7 @@ const ChoosePlan = ({ selectedPlan, setSelectedPlan }) => {
           </div>
           <p
             className={`font-semibold ${
-              selectedPlan == "Free" && "text-primary"
+              space.plan === "Free" && "text-primary"
             }`}
           >
             USD $0 Forever
@@ -167,14 +196,14 @@ const ChoosePlan = ({ selectedPlan, setSelectedPlan }) => {
         </div>
         <div
           className={`bg-ninety rounded-[0.5rem] px-[4rem] py-[2rem] text-eighty cursor-pointer transition-all border  ${
-            selectedPlan == "Premium" ? "border-primary" : "border-transparent"
+            space.plan === "Premium" ? "border-primary" : "border-transparent"
           }`}
-          onClick={() => setSelectedPlan("Premium")}
+          onClick={() => setSpace((prev) => ({ ...prev, plan: "Premium" }))}
         >
           <div className="mb-[3rem]">
             <h3
               className={`font-semibold text-[20px] mb-[10px] ${
-                selectedPlan == "Premium" && "text-primary"
+                space.plan === "Premium" && "text-primary"
               }`}
             >
               Premium
@@ -191,7 +220,7 @@ const ChoosePlan = ({ selectedPlan, setSelectedPlan }) => {
           </div>
           <p
             className={`font-semibold ${
-              selectedPlan == "Premium" && "text-primary"
+              space.plan === "Premium" && "text-primary"
             }`}
           >
             USD $0 Forever
@@ -199,16 +228,16 @@ const ChoosePlan = ({ selectedPlan, setSelectedPlan }) => {
         </div>
         <div
           className={`bg-ninety rounded-[0.5rem] px-[4rem] py-[2rem] text-eighty cursor-pointer transition-all border  ${
-            selectedPlan == "Enterprise"
+            space.plan === "Enterprise"
               ? "border-primary"
               : "border-transparent"
           }`}
-          onClick={() => setSelectedPlan("Enterprise")}
+          onClick={() => setSpace((prev) => ({ ...prev, plan: "Enterprise" }))}
         >
           <div className="mb-[3rem]">
             <h3
               className={`font-semibold text-[20px] mb-[10px] ${
-                selectedPlan == "Enterprise" && "text-primary"
+                space.plan === "Enterprise" && "text-primary"
               }`}
             >
               Enterprise
@@ -227,7 +256,7 @@ const ChoosePlan = ({ selectedPlan, setSelectedPlan }) => {
           </div>
           <p
             className={`font-semibold ${
-              selectedPlan == "Enterprise" && "text-primary"
+              space.plan === "Enterprise" && "text-primary"
             }`}
           >
             USD $35 / month
@@ -238,7 +267,7 @@ const ChoosePlan = ({ selectedPlan, setSelectedPlan }) => {
   );
 };
 
-const ChooseRegion = ({ selectedRegion, setSelectedRegion }) => {
+const ChooseRegion = ({ space, setSpace }) => {
   return (
     <div className="mb-[20px]">
       <h3 className="text-primary mb-[20px]">Choose space region</h3>
@@ -246,15 +275,13 @@ const ChooseRegion = ({ selectedRegion, setSelectedRegion }) => {
       <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-[1.5rem]">
         <div
           className={`bg-ninety rounded-[0.5rem] px-[4rem] py-[2rem] text-eighty cursor-pointer transition-all border  ${
-            selectedRegion == "Asia Pacific"
-              ? "border-primary"
-              : "border-transparent"
+            space.region == "ap1" ? "border-primary" : "border-transparent"
           }`}
-          onClick={() => setSelectedRegion("Asia Pacific")}
+          onClick={() => setSpace((prev) => ({ ...prev, region: "ap1" }))}
         >
           <h3
             className={`font-semibold text-[20px] mb-[4px] ${
-              selectedRegion == "Asia Pacific" && "text-primary"
+              space.region == "ap1" && "text-primary"
             }`}
           >
             Asia Pacific
@@ -263,13 +290,13 @@ const ChooseRegion = ({ selectedRegion, setSelectedRegion }) => {
         </div>
         <div
           className={`bg-ninety rounded-[0.5rem] px-[4rem] py-[2rem] text-eighty cursor-pointer transition-all border  ${
-            selectedRegion == "US" ? "border-primary" : "border-transparent"
+            space.region == "us1" ? "border-primary" : "border-transparent"
           }`}
-          onClick={() => setSelectedRegion("US")}
+          onClick={() => setSpace((prev) => ({ ...prev, region: "us1" }))}
         >
           <h3
             className={`font-semibold text-[20px] mb-[4px] ${
-              selectedRegion == "US" && "text-primary"
+              space.region == "us1" && "text-primary"
             }`}
           >
             US
@@ -278,13 +305,13 @@ const ChooseRegion = ({ selectedRegion, setSelectedRegion }) => {
         </div>
         <div
           className={`bg-ninety rounded-[0.5rem] px-[4rem] py-[2rem] text-eighty cursor-pointer transition-all border  ${
-            selectedRegion == "Europe" ? "border-primary" : "border-transparent"
+            space.region == "eu1" ? "border-primary" : "border-transparent"
           }`}
-          onClick={() => setSelectedRegion("Europe")}
+          onClick={() => setSpace((prev) => ({ ...prev, region: "eu1" }))}
         >
           <h3
             className={`font-semibold text-[20px] mb-[4px] ${
-              selectedRegion == "Europe" && "text-primary"
+              space.region == "eu1" && "text-primary"
             }`}
           >
             Europe
@@ -312,14 +339,16 @@ const SettingSpace = ({ space, setSpace, selectedBill, setSelectedBill }) => {
             onChange={(e) =>
               setSpace({
                 ...space,
-                address: e.target.value.replace(/[^0-9a-zA-Z]+/gi, ""),
+                slug: e.target.value
+                  .replace(/[^0-9a-zA-Z-]+/gi, "-")
+                  .toLowerCase(),
               })
             }
-            value={space.address}
+            value={space.slug}
           />
         </div>
       </div>
-      <div>
+      <div className={`${space.plan === "Free" && "hidden"}`}>
         <h3 className="text-primary mb-[20px]">Bill period</h3>
 
         <div className="flex items-center gap-[0.5rem]">

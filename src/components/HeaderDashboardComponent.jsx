@@ -6,11 +6,26 @@ import { VscListSelection } from "react-icons/vsc";
 
 import Route from "../util/Route";
 import PlanComponent from "./planComponent";
+import { apiRequest, BASEURL, requestSetting } from "../util/Api";
 
 const HeaderDashboardComponent = () => {
   const location = useLocation();
   const [mobileNavbar, setMobileNavbar] = useState(false);
   const [dropdownActive, setDropdownActive] = useState(false);
+  const [email, setEmail] = useState("");
+
+  function getUserInfo() {
+    apiRequest(`${BASEURL}/auth/account`, requestSetting("GET")).then((res) => {
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
+
+      setEmail(res.user.email);
+    });
+  }
+
+  useEffect(() => {
+    getUserInfo();
+  }, []);
 
   return (
     <header className="bg-primary h-[60px] flex items-center">
@@ -63,7 +78,7 @@ const HeaderDashboardComponent = () => {
             type="button"
             onClick={() => setDropdownActive((prev) => !prev)}
           >
-            novanweb@gmail.com <IoIosArrowDown className="text-white" />
+            {email} <IoIosArrowDown className="text-white" />
             <div
               className={`absolute right-0 bottom-[-6.6rem] w-[90%]  rounded-bl-[4px] rounded-br-[4px] py-[1rem]  bg-[#CE1261] text-white font-medium transition-all ${
                 dropdownActive ? "visible opacity-100" : "opacity-0 invisible"

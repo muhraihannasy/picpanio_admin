@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { apiRequest, BASEURL, requestSetting } from "../../util/Api";
 
 // Icon
 import { GoTrashcan } from "react-icons/go";
@@ -16,30 +18,48 @@ import ListImageComponent from "../../components/ListImageComponent";
 import ModalAddAlbumComponent from "../../components/ModalAddAlbumComponent";
 import ModalImageDetailComponent from "../../components/ModalImageDetailComponent";
 import PopupAdd from "../../components/popup/PopupAdd";
+import PopupEdit from "../../components/popup/PopupEdit";
 
 // images
 import repeatIcon from "../../assets/images/repeat-icon.png";
 import galeryIcon from "../../assets/images/icon/gallery.png";
-import { BASEURL, requestSetting } from "../../util/Api";
-import PopupEdit from "../../components/popup/PopupEdit";
+import { formatBytes } from "../../util/config";
+import { toast, Toaster } from "react-hot-toast";
+import Alert from "../../components/alert/alert";
+import Loading from "../../components/loading";
 
 // Util
 
 const Images = () => {
   const [innerWidth, setInnerWidth] = useState(window.innerWidth);
   const [isLoading, setIsLoading] = useState(false);
-  const [openModalAdd, setOpenModalAdd] = useState(false);
+  const [openModal, setOpenModal] = useState({
+    addAlbum: false,
+    addFolder: false,
+    editFolder: false,
+    editAlbum: false,
+  });
   const [openModalEdit, setOpenModalEdit] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isOpenModalImage, setIsOpenModalImage] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [popup, setPopup] = useState({ field: "", url: "", value: "" });
+  const [space, setSpace] = useState({});
   const [imagesLength, setImagesLength] = useState(0);
   const [currentAlbum, setCurrentAlbum] = useState("");
   const [copyUrl, setCopyUrl] = useState("");
   const [albums, setAlbums] = useState([]);
+  const [formAlbum, setFormAlbum] = useState({
+    spaceId: "",
+    name: "",
+    description: "",
+  });
+  const [formFolder, setFormFolder] = useState({ name: "" });
   const [images, setImages] = useState([]);
+  const { spaceId } = useParams();
+  const navigate = useNavigate();
   const imageRef = useRef();
+  const areaCloseRef = useRef();
 
   // Render Count images has Upload
   let loadingImages = [];
@@ -58,50 +78,180 @@ const Images = () => {
     );
   }
 
-  const areaCloseRef = useRef();
-
   // When Upload Images
-  const handleUpload = (e) => {
+  function handleUpload(e) {
     setImagesLength(e.length);
     setIsUploading(true);
 
     setTimeout(() => {
       setIsUploading(false);
     }, 1500);
-  };
+  }
 
-  useEffect(() => {
-    const getAlbums = async () => {
-      const req = await fetch(`${BASEURL}/albums`, requestSetting("GET"));
-      const res = await req.json();
+  function getSpaces() {
+    apiRequest(`${BASEURL}/space`, requestSetting("GET")).then((res) => {
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
 
-      setAlbums(res);
-      setCurrentAlbum(res[0].id);
-    };
+      const space = res.spaces.filter((space) => space.space.id === spaceId);
 
-    (async () => {
-      getAlbums();
-    })();
-  }, [lastRefresh]);
-
-  useEffect(() => {
-    setIsLoading(true);
-    const getImages = async () => {
-      const req = await fetch(`${BASEURL}/images`, requestSetting("GET"));
-      const res = await req.json();
+      setSpace(space[0]);
+      setFormAlbum((prev) => ({ ...prev, spaceId: space[0].space?.id }));
 
       setTimeout(() => {
-        setImages(res.filter((item) => item.album_id == currentAlbum));
         setIsLoading(false);
-      }, 500);
+      }, 1000);
+    });
+  }
+
+  function getAlbums() {
+    apiRequest(
+      `${BASEURL}/album?spaceId=${spaceId}`,
+      requestSetting("GET")
+    ).then((res) => {
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
+
+      setAlbums(res.album);
+    });
+  }
+
+  console.log(space);
+
+  function handleOnAddAlbum() {
+    if (formAlbum.name == "" || formAlbum.description == "") {
+      toast.custom(
+        <Alert type="error" message="name or description cannot be empty" />
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    setOpenModal((prev) => ({ ...prev, addAlbum: false }));
+    apiRequest(`${BASEURL}/album`, requestSetting("POST", formAlbum)).then(
+      (res) => {
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
+
+        if (res.success) {
+          toast.custom(<Alert type="success" message="Success Create Album" />);
+
+          setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
+          setLastRefresh(new Date());
+        }
+
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
+      }
+    );
+  }
+
+  function handleOnEditAlbum() {
+    if (formAlbum.name == "" || formAlbum.description == "") {
+      toast.custom(
+        <Alert type="error" message="name or description cannot be empty" />
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    setOpenModal((prev) => ({ ...prev, editAlbum: false }));
+    apiRequest(`${BASEURL}/album`, requestSetting("PUT", formAlbum)).then(
+      (res) => {
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
+
+        if (res.success) {
+          toast.custom(<Alert type="success" message="Success Change Album" />);
+
+          setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
+          setLastRefresh(new Date());
+        }
+
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
+      }
+    );
+  }
+
+  function handleDeleteAlbum() {
+    setIsLoading(true);
+    setOpenModal((prev) => ({ ...prev, editAlbum: false }));
+
+    const data = {
+      albumId: formAlbum.albumId,
+      spaceId: formAlbum.spaceId,
     };
 
-    (async () => {
-      getImages();
-    })();
+    apiRequest(`${BASEURL}/album`, requestSetting("DETELE", data)).then(
+      (res) => {
+        console.log(res);
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
 
-    console.log(currentAlbum);
-  }, [currentAlbum]);
+        if (res.success) {
+          toast.custom(<Alert type="success" message="Success Delete Album" />);
+
+          setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
+          setLastRefresh(new Date());
+        }
+
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
+      }
+    );
+  }
+
+  function handleCancel(type) {
+    switch (type) {
+      case "add_album":
+        setOpenModal((prev) => ({ ...prev, addAlbum: false }));
+        setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
+        break;
+      case "add_folder":
+        setOpenModal((prev) => ({ ...prev, addFolder: false }));
+        break;
+      case "edit_album":
+        setOpenModal((prev) => ({ ...prev, editAlbum: false }));
+        setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
+        break;
+      default:
+        break;
+    }
+  }
+  // useEffect(() => {
+
+  //   (async () => {
+  //     getAlbums();
+  //   })();
+  // }, [lastRefresh]);
+
+  // useEffect(() => {
+  //   setIsLoading(true);
+  //   const getImages = async () => {
+  //     const req = await fetch(`${BASEURL}/images`, requestSetting("GET"));
+  //     const res = await req.json();
+
+  //     setTimeout(() => {
+  //       // setImages(res.filter((item) => item.album_id == currentAlbum));
+  //       setIsLoading(false);
+  //     }, 500);
+  //   };
+
+  //   (async () => {
+  //     getImages();
+  //   })();
+
+  //   console.log(currentAlbum);
+  // }, [currentAlbum]);
+
+  useEffect(() => {
+    getSpaces();
+    getAlbums();
+  }, [lastRefresh]);
 
   useEffect(() => {
     const closeModal = (e) => {
@@ -131,20 +281,97 @@ const Images = () => {
     <div>
       {/* Header */}
       <HeaderDashboardComponent />
-      {/* Modal */}
+
+      {/* Toast */}
+      <Toaster />
+
+      {/* Loading */}
+      {isLoading && <Loading />}
+
+      {/* Modal Add Album */}
       <PopupAdd
-        setOpenModal={setOpenModalAdd}
-        openModal={openModalAdd}
-        field={popup.field}
-        url={popup.url}
+        onAdd={handleOnAddAlbum}
+        onCancel={() => handleCancel("add_album")}
+        openModal={openModal.addAlbum}
         setLastRefresh={setLastRefresh}
-      />
+      >
+        <h2 className="font-bold text-[14px] text-fivety mb-[7px]">
+          Add Album
+        </h2>
+        <div className="mb-[0.5rem]">
+          <label htmlFor="name" className="block mb-[5px]">
+            Name
+          </label>
+          <input
+            id="name"
+            type="text"
+            placeholder="name..."
+            className="w-[316px] h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
+            onChange={(e) =>
+              setFormAlbum((prev) => ({ ...prev, name: e.target.value }))
+            }
+            value={formAlbum.name}
+          />
+        </div>
+        <div className="mb-[1rem]">
+          <label htmlFor="description" className="block mb-[5px]">
+            Description
+          </label>
+          <input
+            id="description"
+            type="text"
+            placeholder="name..."
+            className="w-[316px] h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
+            onChange={(e) =>
+              setFormAlbum((prev) => ({ ...prev, description: e.target.value }))
+            }
+            value={formAlbum.description}
+          />
+        </div>
+      </PopupAdd>
+
       <PopupEdit
-        setOpenModal={setOpenModalEdit}
-        openModal={openModalEdit}
-        popup={popup}
+        onAdd={handleOnEditAlbum}
+        onDelete={() => handleDeleteAlbum()}
+        onCancel={() => handleCancel("edit_album")}
+        openModal={openModal.editAlbum}
         setLastRefresh={setLastRefresh}
-      />
+      >
+        <h2 className="font-bold text-[14px] text-fivety mb-[7px]">
+          Edit Album
+        </h2>
+
+        <div className="mb-[0.5rem]">
+          <label htmlFor="name" className="block mb-[5px]">
+            Name
+          </label>
+          <input
+            id="name"
+            type="text"
+            placeholder="name..."
+            className="w-[316px] h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
+            onChange={(e) =>
+              setFormAlbum((prev) => ({ ...prev, name: e.target.value }))
+            }
+            value={formAlbum.name}
+          />
+        </div>
+        <div className="mb-[1rem]">
+          <label htmlFor="description" className="block mb-[5px]">
+            Description
+          </label>
+          <input
+            id="description"
+            type="text"
+            placeholder="name..."
+            className="w-[316px] h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
+            onChange={(e) =>
+              setFormAlbum((prev) => ({ ...prev, description: e.target.value }))
+            }
+            value={formAlbum.description}
+          />
+        </div>
+      </PopupEdit>
       <ModalImageDetailComponent
         setIsOpenModalImage={setIsOpenModalImage}
         isOpenModalImage={isOpenModalImage}
@@ -163,25 +390,39 @@ const Images = () => {
         <section className="mt-[37px]">
           <div className="container flex flex-wrap items-center lg:justify-between justify-center gap-[2rem]  text-fivety ">
             <div>
-              <h2 className="font-bold text-[18px] mb-[5px]">NSTEK</h2>
-              <p>nstek.sg.picpan.io</p>
+              <h2 className="font-bold text-[18px] mb-[5px]">
+                {space.space?.name}
+              </h2>
+              <p>
+                {space.space?.region}.picpan.io/{space.space?.slug}
+              </p>
             </div>
             <div>
               <h2 className="font-bold text-[14px] mb-[5px] ">Plan</h2>
               <PlanComponent
-                text="Premium"
+                text={space.space?.plan}
                 bg="bg-fourty"
                 color="fivety"
                 styleFont="regular"
               />
             </div>
             <div>
-              <h2 className="font-bold text-[14px] mb-[5px]">NSTEK</h2>
-              <p className="text-[14px]">Asia - Singapore</p>
+              <h2 className="font-bold text-[14px] mb-[5px]">
+                {space.space?.name}
+              </h2>
+              <p className="text-[14px]">
+                {space.space?.region == "ap1" && "Asia - Singapore"}
+                {space.space?.region == "us1" && "Asia Dallas, TX"}
+                {space.space?.region == "eu1" && "Europa Germany"}
+              </p>
             </div>
             <div>
               <h2 className="font-bold text-[14px] mb-[5px]">Storage usage</h2>
-              <p className="text-[14px]">32% (31 GB of 100 GB)</p>
+              <p className="text-[14px]">
+                ({formatBytes(space.space?.currentSize)} of{" "}
+                {formatBytes(space.space?.limitSize)})
+              </p>
+              {/* 32% (31 GB of 100 GB) */}
             </div>
 
             <div className="flex items-center text-[14px] gap-1 text-third cursor-pointer">
@@ -200,7 +441,7 @@ const Images = () => {
                   field: "Album",
                   url: "albums",
                 });
-                setOpenModalAdd(true);
+                setOpenModal({ addAlbum: true });
               }}
             >
               {innerWidth >= 798 && <h3>Add Album</h3>}
@@ -222,7 +463,7 @@ const Images = () => {
                     field: "Folder",
                     url: "folders",
                   });
-                  setOpenModalAdd(true);
+                  setOpenModal({ addFolder: true });
                 }}
               >
                 {innerWidth >= 798 && <h3>Add Folder</h3>}
@@ -256,8 +497,8 @@ const Images = () => {
                 listItem={albums}
                 setCurrentAlbum={setCurrentAlbum}
                 ref={imageRef}
-                setOpenModal={setOpenModalEdit}
-                setPopup={setPopup}
+                setFormAlbum={setFormAlbum}
+                setOpenModal={setOpenModal}
               />
 
               <div className="w-full flex-1">
@@ -288,10 +529,11 @@ const Images = () => {
 
                 {isLoading && <h2 className="text-center">Loading ...</h2>}
                 {!isLoading && images.length > 1 && (
-                  <ListImageComponent
-                    listItem={images}
-                    onClick={() => setIsOpenModalImage((prev) => !prev)}
-                  />
+                  // <ListImageComponent
+                  //   listItem={images}
+                  //   onClick={() => setIsOpenModalImage((prev) => !prev)}
+                  // />
+                  <></>
                 )}
                 {images.length < 1 && !isLoading && (
                   <h2 className="text-center pt-[5rem]">No Images </h2>

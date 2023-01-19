@@ -16,6 +16,9 @@ export const requestSetting = (method, body = {}) => {
     case "POST":
       header.body = JSON.stringify(body);
       break;
+    case "PUT":
+      header.body = JSON.stringify(body);
+      break;
     default:
       break;
   }
@@ -26,10 +29,9 @@ export const requestSetting = (method, body = {}) => {
 export const apiRequest = (url, header) => {
   return fetch(url, header)
     .then((res) => {
-      console.log(res);
       if (res.status === 401) {
-        // window.location.href = "/login";
-        // return;
+        window.location.href = "/login";
+        return;
       }
 
       return res.json();

@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { apiRequest, BASEURL, requestSetting } from "../../util/Api";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // Component
 import HeaderDashboardComponent from "../../components/HeaderDashboardComponent";
 import Route from "../../util/Route";
-import { IoMailOpenOutline } from "react-icons/io5";
+import { IoMailOpenOutline, IoNavigateCircleOutline } from "react-icons/io5";
 import { Toaster } from "react-hot-toast";
 import Loading from "../../components/loading";
 
@@ -13,21 +13,45 @@ const Spaces = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [spaces, setSpaces] = useState([]);
   const [isUnverified, setIsUnverified] = useState(false);
+  const navigate = useNavigate();
 
   function getUserInfo() {
     apiRequest(`${BASEURL}/auth/account`, requestSetting("GET")).then((res) => {
-      const { user } = res;
-      if (user.status === "Pending") setIsUnverified(true);
+      if (res.user?.status === "Pending") setIsUnverified(true);
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
 
       setTimeout(() => {
         setIsLoading(false);
       }, 1000);
-      console.log(res);
     });
   }
+
+  function getSpaces() {
+    let spacesArr = [];
+
+    apiRequest(`${BASEURL}/space`, requestSetting("GET")).then((res) => {
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
+
+      res.spaces.forEach((space) => {
+        spacesArr.push(space.space);
+      });
+
+      setSpaces(spacesArr);
+
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+    });
+  }
+
   useEffect(() => {
     getUserInfo();
+    getSpaces();
   }, []);
+
+  console.log(spaces);
 
   useEffect(() => {
     document.body.style.background = "#ffffff";
@@ -55,7 +79,7 @@ const Spaces = () => {
                   <h2 className="text-secondary text-[1.4rem] font-semibold my-[1.2rem]">
                     Spaces
                   </h2>
-                  <SpaceItems items={spaces} />
+                  <SpaceItems items={spaces} navigate={navigate} />
                 </>
               ) : (
                 <NotHaveSpace isUnverified={isUnverified} />
@@ -100,26 +124,30 @@ const NotHaveSpace = ({ isUnverified }) => {
   );
 };
 
-const SpaceItems = ({ items }) => {
+const SpaceItems = ({ items, navigate }) => {
   return (
     <div className="grid md:grid-cols-2 grid-cols-1 gap-[1rem]">
       {items.map((item) => {
+        const { id, name, region, slug, status } = item;
+        const url = `${region}.picpan.io/${slug}`;
         return (
-          <div className="bg-ninety rounded-[8px] px-6 py-4">
+          <div
+            className="bg-ninety rounded-[8px] px-6 py-4 cursor-pointer"
+            key={id}
+            onClick={() => navigate(`/spaces/${id}`)}
+          >
             <div className="flex items-center justify-between">
-              <h3 className="text-[1.2rem] font-semibold text-primary">
-                {item.name}
-              </h3>
-              <p
-                className={`font-bold text-[0.9rem] ${statusColor(
-                  item.status
-                )}`}
-              >
-                {item.status}
+              <h3 className="text-[16px] font-semibold text-primary">{name}</h3>
+              <p className={`font-bold text-[14px] ${statusColor(status)}`}>
+                {status}
               </p>
             </div>
-            <p className="text-eighty text-[14px]">{item.url}</p>
-            <p className="text-[12px] text-eighty">{item.location}</p>
+            <p className="text-eighty text-[14px]">{url}</p>
+            <p className="text-[12px] text-eighty">
+              {region == "ap1" && "Asia Pacific (Singapore)"}
+              {region == "us1" && "Asia Pacific (Dallas, TX)"}
+              {region == "eu1" && "Europa (Germany)"}
+            </p>
           </div>
         );
       })}

@@ -28,6 +28,7 @@ const Verified = () => {
           );
 
           navigate("/spaces", { replace: true });
+          jjjj;
         }
       }
     );
