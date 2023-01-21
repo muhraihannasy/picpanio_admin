@@ -3,9 +3,11 @@ import { RiEditBoxFill } from "react-icons/ri";
 
 const ListAlbumComponent = ({
   listItem,
-  setCurrentAlbum,
+  setLastChangedAlbum,
   setFormAlbum,
+  setFormFolder,
   setOpenModal,
+  setCurrentAlbum,
 }) => {
   return (
     <div className="w-[240px] h-[591px] bg-[#F5F5F5] pb-[5px] rounded-tl-[6px] rounded-bl-[6px] border-l-2 border-b-2 overflow-y-auto overflow-x-hidden list-album ">
@@ -23,7 +25,11 @@ const ListAlbumComponent = ({
               >
                 <div
                   className="flex items-center justify-between w-full text-[0.9rem] gap-[0.5rem] pr-2"
-                  onClick={() => setCurrentAlbum(item.id)}
+                  onClick={() => {
+                    setLastChangedAlbum(new Date());
+                    setFormFolder((prev) => ({ ...prev, albumId: item.id }));
+                    setCurrentAlbum(item.id);
+                  }}
                 >
                   <p className="w-[160px] overflow-hidden">
                     {item.name.split("").length >= 15

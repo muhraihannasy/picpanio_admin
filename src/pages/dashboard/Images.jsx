@@ -27,35 +27,55 @@ import { formatBytes } from "../../util/config";
 import { toast, Toaster } from "react-hot-toast";
 import Alert from "../../components/alert/alert";
 import Loading from "../../components/loading";
+import PopupDelete from "../../components/popup/PopupDelete";
 
 // Util
 
 const Images = () => {
   const [innerWidth, setInnerWidth] = useState(window.innerWidth);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+
   const [openModal, setOpenModal] = useState({
     addAlbum: false,
     addFolder: false,
     editFolder: false,
     editAlbum: false,
+    confirmDeleteFolder: false,
+    confirmDeleteFile: false,
   });
-  const [openModalEdit, setOpenModalEdit] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isOpenModalImage, setIsOpenModalImage] = useState(false);
-  const [lastRefresh, setLastRefresh] = useState(new Date());
-  const [popup, setPopup] = useState({ field: "", url: "", value: "" });
-  const [space, setSpace] = useState({});
-  const [imagesLength, setImagesLength] = useState(0);
-  const [currentAlbum, setCurrentAlbum] = useState("");
-  const [copyUrl, setCopyUrl] = useState("");
-  const [albums, setAlbums] = useState([]);
+  const [path, setPath] = useState({
+    previousPath: "",
+    path: "",
+    parentChild: [],
+  });
   const [formAlbum, setFormAlbum] = useState({
     spaceId: "",
     name: "",
     description: "",
   });
-  const [formFolder, setFormFolder] = useState({ name: "" });
+  const [formFolder, setFormFolder] = useState({
+    spaceId: "",
+    albumId: "",
+    path: "",
+    name: "",
+  });
+
+  const [isOpenModalImage, setIsOpenModalImage] = useState(false);
+  const [space, setSpace] = useState({});
+  const [imagesLength, setImagesLength] = useState(0);
+  const [currentAlbum, setCurrentAlbum] = useState("");
+  const [currentFolder, setCurrentFolder] = useState("");
+
+  const [copyUrl, setCopyUrl] = useState("");
+
+  const [albums, setAlbums] = useState([]);
+  const [folders, setFolders] = useState([]);
   const [images, setImages] = useState([]);
+
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [lastChangedAlbum, setLastChangedAlbum] = useState(new Date());
+
   const { spaceId } = useParams();
   const navigate = useNavigate();
   const imageRef = useRef();
@@ -79,13 +99,66 @@ const Images = () => {
   }
 
   // When Upload Images
-  function handleUpload(e) {
-    setImagesLength(e.length);
+  function handleUpload(files) {
+    setImagesLength(files.length);
     setIsUploading(true);
 
-    setTimeout(() => {
-      setIsUploading(false);
-    }, 1500);
+    const token = localStorage.getItem("acctkn");
+
+    const formData = new FormData();
+
+    formData.append("file", files);
+    formData.append("spaceId", spaceId);
+    formData.append("albumId", currentAlbum);
+    formData.append("path", "root");
+
+    const header = {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: formData,
+      redirect: "follow",
+    };
+
+    console.log("files", files);
+    console.log("spaceId", spaceId);
+    console.log("albumId", currentAlbum);
+    console.log("path", path.path);
+
+    apiRequest(`${BASEURL}/file`, header).then((res) => {
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
+
+      console.log(res);
+
+      // if (res.success) {
+      //   toast.custom(
+      //     <Alert type="success" message="Success Create Album" />
+      //   );
+
+      // setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
+      // setLastRefresh(new Date());
+      // }
+
+      setTimeout(() => {
+        setIsLoading(false);
+        setIsUploading(false);
+      }, 1000);
+    });
+
+    // if (formAlbum.name == "" || formAlbum.description == "") {
+    //   toast.custom(
+    //     <Alert type="error" message="name or description cannot be empty" />
+    //   );
+    //   return;
+    // }
+
+    // setIsLoading(true);
+
+    // setTimeout(() => {
+    // }, 1500);
   }
 
   function getSpaces() {
@@ -94,9 +167,11 @@ const Images = () => {
         navigate("/login", { replace: true });
 
       const space = res.spaces.filter((space) => space.space.id === spaceId);
+      const firstSpaceId = space[0].space?.id;
 
       setSpace(space[0]);
-      setFormAlbum((prev) => ({ ...prev, spaceId: space[0].space?.id }));
+      setFormAlbum((prev) => ({ ...prev, spaceId: firstSpaceId }));
+      setFormFolder((prev) => ({ ...prev, spaceId: firstSpaceId }));
 
       setTimeout(() => {
         setIsLoading(false);
@@ -112,11 +187,42 @@ const Images = () => {
       if (res.message == "The token is malformed.")
         navigate("/login", { replace: true });
 
+      if (res.statusCode == 500) navigate("/spaces", { replace: true });
+
+      // console.log(res, "response");
+
+      const firstAlbumId = res.album[0]?.id;
+
       setAlbums(res.album);
+      setFormFolder((prev) => ({ ...prev, albumId: firstAlbumId }));
     });
   }
 
-  console.log(space);
+  function getFolders() {
+    const data = {
+      spaceId: formFolder.spaceId,
+      albumId: formFolder.albumId,
+      path: path.path,
+    };
+
+    console.log("DATA ALBUM", data);
+
+    console.log("DATA", data);
+
+    apiRequest(`${BASEURL}/folder/show`, requestSetting("POST", data)).then(
+      (res) => {
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
+
+        if (res.statusCode == 500) {
+          setFolders([]);
+          return;
+        }
+
+        setFolders(res?.folderList);
+      }
+    );
+  }
 
   function handleOnAddAlbum() {
     if (formAlbum.name == "" || formAlbum.description == "") {
@@ -205,6 +311,99 @@ const Images = () => {
     );
   }
 
+  function handleOnAddFolder() {
+    if (formFolder.name == "") {
+      toast.custom(<Alert type="error" message="name cannot be empty" />);
+      return;
+    }
+
+    setIsLoading(true);
+    setOpenModal((prev) => ({ ...prev, addFolder: false }));
+    apiRequest(`${BASEURL}/folder`, requestSetting("POST", formFolder)).then(
+      (res) => {
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
+
+        if (res.success) {
+          toast.custom(
+            <Alert type="success" message="Success Create Folder" />
+          );
+
+          setFormFolder((prev) => ({ ...prev, name: "" }));
+          setLastRefresh(new Date());
+        }
+
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
+      }
+    );
+  }
+
+  function handleOnEditFolder() {
+    if (formFolder.name == "") {
+      toast.custom(<Alert type="error" message="name cannot be empty" />);
+      return;
+    }
+
+    setIsLoading(true);
+    setOpenModal((prev) => ({ ...prev, editFolder: false }));
+    apiRequest(
+      `${BASEURL}/folder/rename`,
+      requestSetting("PUT", formFolder)
+    ).then((res) => {
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
+
+      if (res.success) {
+        toast.custom(<Alert type="success" message="Success Change Folder" />);
+
+        setFormFolder((prev) => ({ ...prev, name: "" }));
+        setLastRefresh(new Date());
+      }
+
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+    });
+  }
+
+  function handleDeleteFolder() {
+    const data = {
+      albumId: formFolder.albumId,
+      spaceId: formFolder.spaceId,
+      folderId: formFolder.folderId,
+      path: path.path,
+    };
+
+    setIsLoading(true);
+    setOpenModal((prev) => ({
+      ...prev,
+      confirmDeleteFolder: false,
+      editFolder: false,
+    }));
+    apiRequest(`${BASEURL}/folder`, requestSetting("DETELE", data)).then(
+      (res) => {
+        console.log(res);
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
+
+        if (res.success) {
+          toast.custom(
+            <Alert type="success" message="Success Delete Folder" />
+          );
+
+          setFormFolder((prev) => ({ ...prev, name: "" }));
+          setLastRefresh(new Date());
+        }
+
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
+      }
+    );
+  }
+
   function handleCancel(type) {
     switch (type) {
       case "add_album":
@@ -213,45 +412,55 @@ const Images = () => {
         break;
       case "add_folder":
         setOpenModal((prev) => ({ ...prev, addFolder: false }));
+        setFormFolder((prev) => ({ ...prev, name: "" }));
         break;
       case "edit_album":
         setOpenModal((prev) => ({ ...prev, editAlbum: false }));
         setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
         break;
+      case "edit_folder":
+        setOpenModal((prev) => ({ ...prev, editFolder: false }));
+        setFormFolder((prev) => ({ ...prev, name: "" }));
+        break;
+      case "delete_file":
+        setOpenModal((prev) => ({ ...prev, confirmDeleteFile: false }));
+        break;
+      case "delete_folder":
+        setOpenModal((prev) => ({ ...prev, confirmDeleteFolder: false }));
+        break;
       default:
         break;
     }
   }
-  // useEffect(() => {
-
-  //   (async () => {
-  //     getAlbums();
-  //   })();
-  // }, [lastRefresh]);
-
-  // useEffect(() => {
-  //   setIsLoading(true);
-  //   const getImages = async () => {
-  //     const req = await fetch(`${BASEURL}/images`, requestSetting("GET"));
-  //     const res = await req.json();
-
-  //     setTimeout(() => {
-  //       // setImages(res.filter((item) => item.album_id == currentAlbum));
-  //       setIsLoading(false);
-  //     }, 500);
-  //   };
-
-  //   (async () => {
-  //     getImages();
-  //   })();
-
-  //   console.log(currentAlbum);
-  // }, [currentAlbum]);
 
   useEffect(() => {
     getSpaces();
     getAlbums();
+    getFolders();
   }, [lastRefresh]);
+
+  useEffect(() => {
+    getFolders();
+    setFormFolder((prev) => ({
+      ...prev,
+      path: "root",
+    }));
+    setPath((prev) => ({ ...prev, path: "root" }));
+  }, [lastChangedAlbum]);
+
+  useEffect(() => {
+    let parentChildArr = [];
+    currentFolder !== "root" ? parentChildArr.push(currentFolder) : [];
+
+    setPath({
+      previousPath: path.path,
+      path: parentChildArr.length == 0 ? "root" : parentChildArr.join("/"),
+    });
+
+    getFolders();
+  }, [currentFolder]);
+
+  console.log(path);
 
   useEffect(() => {
     const closeModal = (e) => {
@@ -330,6 +539,34 @@ const Images = () => {
         </div>
       </PopupAdd>
 
+      {/* Modal Add Folder */}
+      <PopupAdd
+        onAdd={handleOnAddFolder}
+        onCancel={() => handleCancel("add_folder")}
+        openModal={openModal.addFolder}
+        setLastRefresh={setLastRefresh}
+      >
+        <h2 className="font-bold text-[14px] text-fivety mb-[7px]">
+          Add Folder
+        </h2>
+        <div className="mb-[0.5rem]">
+          <label htmlFor="name" className="block mb-[5px]">
+            Name
+          </label>
+          <input
+            id="name"
+            type="text"
+            placeholder="name..."
+            className="w-[316px] h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
+            onChange={(e) =>
+              setFormFolder((prev) => ({ ...prev, name: e.target.value }))
+            }
+            value={formFolder.name}
+          />
+        </div>
+      </PopupAdd>
+
+      {/* Modal Edit Album */}
       <PopupEdit
         onAdd={handleOnEditAlbum}
         onDelete={() => handleDeleteAlbum()}
@@ -372,6 +609,42 @@ const Images = () => {
           />
         </div>
       </PopupEdit>
+
+      {/* Modal Edit Folder */}
+      <PopupEdit
+        onAdd={handleOnEditFolder}
+        onDelete={() => handleDeleteFolder()}
+        onCancel={() => handleCancel("edit_folder")}
+        openModal={openModal.editFolder}
+        setLastRefresh={setLastRefresh}
+      >
+        <h2 className="font-bold text-[14px] text-fivety mb-[7px]">
+          Edit Folder
+        </h2>
+
+        <label htmlFor="name" className="block mb-[5px]">
+          Name
+        </label>
+        <input
+          id="name"
+          type="text"
+          placeholder="name..."
+          className="w-[316px] h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
+          onChange={(e) =>
+            setFormFolder((prev) => ({ ...prev, name: e.target.value }))
+          }
+          value={formFolder.name}
+        />
+      </PopupEdit>
+
+      {/* Modal Delete Folder */}
+      <PopupDelete
+        onDelete={handleDeleteFolder}
+        openModal={openModal.confirmDeleteFolder}
+        onCancel={() => handleCancel("delete_folder")}
+        title={formFolder.name}
+      />
+
       <ModalImageDetailComponent
         setIsOpenModalImage={setIsOpenModalImage}
         isOpenModalImage={isOpenModalImage}
@@ -437,10 +710,6 @@ const Images = () => {
             <button
               className="flex items-center justify-between px-4 bg-primary w-[194px] max-[798px]:w-max rounded-[8px] h-[36px] flex-2"
               onClick={() => {
-                setPopup({
-                  field: "Album",
-                  url: "albums",
-                });
                 setOpenModal({ addAlbum: true });
               }}
             >
@@ -459,10 +728,6 @@ const Images = () => {
               <button
                 className="flex items-center justify-between px-4 bg-eighty w-[194px] max-[798px]:w-max rounded-[8px] h-[36px] flex-2"
                 onClick={() => {
-                  setPopup({
-                    field: "Folder",
-                    url: "folders",
-                  });
                   setOpenModal({ addFolder: true });
                 }}
               >
@@ -495,9 +760,10 @@ const Images = () => {
             <div className="border-t-2 border-r-2 flex rounded-tl-[6px] rounded-bl-[4px]">
               <ListAlbumComponent
                 listItem={albums}
+                setLastChangedAlbum={setLastChangedAlbum}
                 setCurrentAlbum={setCurrentAlbum}
-                ref={imageRef}
                 setFormAlbum={setFormAlbum}
+                setFormFolder={setFormFolder}
                 setOpenModal={setOpenModal}
               />
 
@@ -528,15 +794,22 @@ const Images = () => {
                 )}
 
                 {isLoading && <h2 className="text-center">Loading ...</h2>}
-                {!isLoading && images.length > 1 && (
-                  // <ListImageComponent
-                  //   listItem={images}
-                  //   onClick={() => setIsOpenModalImage((prev) => !prev)}
-                  // />
-                  <></>
+                {console.log(folders)}
+                {!isLoading && (
+                  <ListImageComponent
+                    listFolders={folders}
+                    setOpenModal={setOpenModal}
+                    setFormFolder={setFormFolder}
+                    setPath={setPath}
+                    path={path}
+                    setCurrentFolder={setCurrentFolder}
+                    currentFolder={currentFolder}
+                  />
                 )}
-                {images.length < 1 && !isLoading && (
-                  <h2 className="text-center pt-[5rem]">No Images </h2>
+                {folders.length == 0 && (
+                  <h2 className="text-center pt-[1rem] translate-y-[-34rem]">
+                    No Album Selected{" "}
+                  </h2>
                 )}
               </div>
             </div>

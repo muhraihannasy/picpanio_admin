@@ -13,6 +13,7 @@ import CreateSpace from "./pages/dashboard/CreateSpace";
 import ApiIntegration from "./pages/dashboard/ApiIntegration";
 import Verified from "./pages/auth/Verified";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import Profile from "./pages/dashboard/account/Profile";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -35,6 +36,7 @@ function App() {
         <Route path="/spaces" element={<Spaces />} />
         <Route path="/spaces/:spaceId" element={<Images />} />
         <Route path="/create_space" element={<CreateSpace />} />
+        <Route path="/account" element={<Profile />} />
       </Routes>
     </div>
   );
