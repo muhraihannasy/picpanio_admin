@@ -7,7 +7,7 @@ import CopyText from "../util/CopyText";
 import images from "../assets/images/images-dummy2.png";
 import { IoCopySharp } from "react-icons/io5";
 
-const ModalImageDetailComponent = ({ isOpenModalImage }) => {
+const ModalImageDetailComponent = ({ setOpenModal, openModal }) => {
   const [imageProperties, setImageProperties] = useState({
     width: "",
     height: "",
@@ -34,7 +34,7 @@ const ModalImageDetailComponent = ({ isOpenModalImage }) => {
   return (
     <aside
       className={`fixed top-0 h-full w-[540px] bg-white shadow-lg z-[999] px-[2rem] py-[2rem] transition-all ${
-        isOpenModalImage ? "right-0" : "right-[-100rem]"
+        openModal ? "right-0" : "right-[-100rem]"
       }`}
     >
       <div className="flex justify-between gap-4">

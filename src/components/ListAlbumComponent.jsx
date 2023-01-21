@@ -8,6 +8,7 @@ const ListAlbumComponent = ({
   setFormFolder,
   setOpenModal,
   setCurrentAlbum,
+  setPath,
 }) => {
   return (
     <div className="w-[240px] h-[591px] bg-[#F5F5F5] pb-[5px] rounded-tl-[6px] rounded-bl-[6px] border-l-2 border-b-2 overflow-y-auto overflow-x-hidden list-album ">
@@ -27,8 +28,8 @@ const ListAlbumComponent = ({
                   className="flex items-center justify-between w-full text-[0.9rem] gap-[0.5rem] pr-2"
                   onClick={() => {
                     setLastChangedAlbum(new Date());
-                    setFormFolder((prev) => ({ ...prev, albumId: item.id }));
                     setCurrentAlbum(item.id);
+                    setPath("root");
                   }}
                 >
                   <p className="w-[160px] overflow-hidden">
@@ -45,12 +46,11 @@ const ListAlbumComponent = ({
                       ...prev,
                       editAlbum: true,
                     }));
-                    setFormAlbum((prev) => ({
-                      ...prev,
+                    setFormAlbum({
                       name: item.name,
                       description: item.description,
-                      albumId: item.id,
-                    }));
+                    });
+                    setCurrentAlbum(item.id);
                   }}
                 >
                   <RiEditBoxFill className="text-[1rem]" />

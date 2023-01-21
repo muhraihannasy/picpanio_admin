@@ -12,17 +12,31 @@ import CopyText from "../util/CopyText";
 
 const ListImageComponent = ({
   listFolders,
+  listFiles,
   setOpenModal,
   setFormFolder,
-  setPath,
-  setCurrentFolder,
-  onDeleteFolder,
+  setFormFile,
   path,
-  currentFolder,
+  setCurrentFolder,
+  changesPath,
+  backToTopPath,
 }) => {
-  let parentChildArr = [];
+  console.log(listFiles);
   return (
     <ul className="mt-[1.5rem] h-[39.7rem] overflow-y-scroll list-image">
+      {path !== "root" && (
+        <li className="px-6 py-2 cursor-pointer border-b">
+          <div
+            className="flex items-center gap-4 w-full"
+            onClick={() => {
+              backToTopPath(path);
+            }}
+          >
+            <BsFolder2Open className="text-primary text-[1.7rem]" />
+            <p className="text-[14px] text-eighty">....</p>
+          </div>
+        </li>
+      )}
       {listFolders &&
         listFolders.map((item) => {
           return (
@@ -33,18 +47,8 @@ const ListImageComponent = ({
               <div
                 className="flex items-center gap-4 w-full"
                 onClick={() => {
-                  currentFolder == "root"
-                    ? parentChildArr.push("root")
-                    : parentChildArr.push(currentFolder);
-
-                  setPath({
-                    previousPath: path.path,
-                    path:
-                      parentChildArr.length == 0
-                        ? "root"
-                        : parentChildArr.join("/"),
-                  });
                   setCurrentFolder(item.id);
+                  changesPath(item.id);
                 }}
               >
                 <BsFolder2Open className="text-primary text-[1.7rem]" />
@@ -58,8 +62,8 @@ const ListImageComponent = ({
                     setFormFolder((prev) => ({
                       ...prev,
                       name: item.name,
-                      folderId: item.id,
                     }));
+                    setCurrentFolder(item.id);
                   }}
                 >
                   <RiEditBoxFill className=" text-primary" />
@@ -72,9 +76,9 @@ const ListImageComponent = ({
                     }));
                     setFormFolder((prev) => ({
                       ...prev,
-                      folderId: item.id,
                       name: item.name,
                     }));
+                    setCurrentFolder(item.id);
                   }}
                 >
                   <GoTrashcan className="text-red-700" />
@@ -83,25 +87,22 @@ const ListImageComponent = ({
             </li>
           );
         })}
-      {/* {listFolders &&
-        listFolders.map((item, index) => {
+
+      {listFiles &&
+        listFiles.map((item, index) => {
           return (
             <li
               className="border-b flex justify-between gap-4 px-6 py-2 cursor-pointer item-image"
               key={index}
-      
             >
               <div
                 className="flex items-center gap-3 item-image flex-1"
-                onClick={() => {
-                  onClick();
-                }}
+                onClick={() =>
+                  setOpenModal((prev) => ({ ...prev, modalDetailImage: true }))
+                }
               >
                 <img src={image} alt="" className="w-[30px] item-image" />
-                <h3 className="text-[12px] item-image">
-                  Sample image one asdiashdihas ihasd ihas diash diasd iasd
-                  hasid
-                </h3>
+                <h3 className="text-[12px] item-image">{item.key}</h3>
               </div>
 
               <div className="flex items-center gap-[2rem] item-image">
@@ -123,13 +124,21 @@ const ListImageComponent = ({
                   </button>
                 </div>
 
-                <button>
-                  <GoTrashcan className="text-third" />
+                <button
+                  onClick={() => {
+                    setOpenModal((prev) => ({
+                      ...prev,
+                      confirmDeleteFile: true,
+                    }));
+                    setFormFile((prev) => ({ ...prev, filename: item.id }));
+                  }}
+                >
+                  <GoTrashcan className="text-third text-[1.45rem]" />
                 </button>
               </div>
             </li>
           );
-        })} */}
+        })}
     </ul>
   );
 };

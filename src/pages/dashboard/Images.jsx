@@ -5,7 +5,7 @@ import { apiRequest, BASEURL, requestSetting } from "../../util/Api";
 // Icon
 import { GoTrashcan } from "react-icons/go";
 import { MdAddCircle } from "react-icons/md";
-import { IoCloudUpload } from "react-icons/io5";
+import { IoCloudUpload, IoConstructOutline } from "react-icons/io5";
 import { FiSearch } from "react-icons/fi";
 import { IoIosAlbums } from "react-icons/io";
 import { BsFillFolderFill } from "react-icons/bs";
@@ -43,22 +43,19 @@ const Images = () => {
     editAlbum: false,
     confirmDeleteFolder: false,
     confirmDeleteFile: false,
+    modalDetailImage: false,
   });
-  const [path, setPath] = useState({
-    previousPath: "",
-    path: "",
-    parentChild: [],
-  });
+  const [path, setPath] = useState("root");
   const [formAlbum, setFormAlbum] = useState({
-    spaceId: "",
     name: "",
     description: "",
   });
   const [formFolder, setFormFolder] = useState({
-    spaceId: "",
-    albumId: "",
     path: "",
     name: "",
+  });
+  const [formFile, setFormFile] = useState({
+    filename: "",
   });
 
   const [isOpenModalImage, setIsOpenModalImage] = useState(false);
@@ -71,6 +68,7 @@ const Images = () => {
 
   const [albums, setAlbums] = useState([]);
   const [folders, setFolders] = useState([]);
+  const [files, setFiles] = useState([]);
   const [images, setImages] = useState([]);
 
   const [lastRefresh, setLastRefresh] = useState(new Date());
@@ -99,66 +97,101 @@ const Images = () => {
   }
 
   // When Upload Images
+  // function handleUpload(files) {
+  //   setImagesLength(files.length);
+  //   setIsUploading(true);
+
+  //   const token = localStorage.getItem("acctkn");
+
+  //   const formData = new FormData();
+
+  //   formData.append("file", files);
+  //   formData.append("spaceId", spaceId);
+  //   formData.append("albumId", currentAlbum);
+  //   formData.append("path", "root");
+
+  //   const header = {
+  //     method: "POST",
+  //     headers: {
+  //       Authorization: `Bearer ${token}`,
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: formData,
+  //     redirect: "follow",
+  //   };
+
+  //   apiRequest(`${BASEURL}/file`, header).then((res) => {
+  //     if (res.message == "The token is malformed.")
+  //       navigate("/login", { replace: true });
+
+  //     // if (res.success) {
+  //     //   toast.custom(
+  //     //     <Alert type="success" message="Success Create Album" />
+  //     //   );
+
+  //     // setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
+  //     // setLastRefresh(new Date());
+  //     // }
+
+  //     setTimeout(() => {
+  //       setIsLoading(false);
+  //       setIsUploading(false);
+  //     }, 1000);
+  //   });
+
+  //   // if (formAlbum.name == "" || formAlbum.description == "") {
+  //   //   toast.custom(
+  //   //     <Alert type="error" message="name or description cannot be empty" />
+  //   //   );
+  //   //   return;
+  //   // }
+
+  //   // setIsLoading(true);
+
+  //   // setTimeout(() => {
+  //   // }, 1500);
+  // }
+
   function handleUpload(files) {
     setImagesLength(files.length);
     setIsUploading(true);
 
     const token = localStorage.getItem("acctkn");
 
-    const formData = new FormData();
+    var myHeaders = new Headers();
+    myHeaders.append("Authorization", "Bearer " + token);
 
-    formData.append("file", files);
-    formData.append("spaceId", spaceId);
-    formData.append("albumId", currentAlbum);
-    formData.append("path", "root");
+    var formdata = new FormData();
+    for (var i = 0; i < files.length; i++) {
+      formdata.append("file", files[i], files[i].name);
+    }
+    formdata.append("spaceId", spaceId);
+    formdata.append("albumId", currentAlbum);
+    formdata.append("path", path);
 
-    const header = {
+    var requestOptions = {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: formData,
+      headers: myHeaders,
+      body: formdata,
       redirect: "follow",
     };
 
-    console.log("files", files);
-    console.log("spaceId", spaceId);
-    console.log("albumId", currentAlbum);
-    console.log("path", path.path);
+    fetch("https://space-api.picpan.dev/file", requestOptions)
+      .then((response) => response.json())
+      .then((res) => {
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
 
-    apiRequest(`${BASEURL}/file`, header).then((res) => {
-      if (res.message == "The token is malformed.")
-        navigate("/login", { replace: true });
+        if (res.success) {
+          toast.custom(
+            <Alert type="success" message="Success uploaded files" />
+          );
+          setIsUploading(false);
 
-      console.log(res);
-
-      // if (res.success) {
-      //   toast.custom(
-      //     <Alert type="success" message="Success Create Album" />
-      //   );
-
-      // setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
-      // setLastRefresh(new Date());
-      // }
-
-      setTimeout(() => {
-        setIsLoading(false);
-        setIsUploading(false);
-      }, 1000);
-    });
-
-    // if (formAlbum.name == "" || formAlbum.description == "") {
-    //   toast.custom(
-    //     <Alert type="error" message="name or description cannot be empty" />
-    //   );
-    //   return;
-    // }
-
-    // setIsLoading(true);
-
-    // setTimeout(() => {
-    // }, 1500);
+          setLastRefresh(new Date());
+        }
+      })
+      .catch((error) => console.log("error", error));
   }
 
   function getSpaces() {
@@ -200,14 +233,10 @@ const Images = () => {
 
   function getFolders() {
     const data = {
-      spaceId: formFolder.spaceId,
-      albumId: formFolder.albumId,
-      path: path.path,
+      spaceId: spaceId,
+      albumId: currentAlbum,
+      path: path,
     };
-
-    console.log("DATA ALBUM", data);
-
-    console.log("DATA", data);
 
     apiRequest(`${BASEURL}/folder/show`, requestSetting("POST", data)).then(
       (res) => {
@@ -216,10 +245,13 @@ const Images = () => {
 
         if (res.statusCode == 500) {
           setFolders([]);
+          setFiles([]);
           return;
         }
 
         setFolders(res?.folderList);
+        setFiles(res?.fileList);
+        console.log("data", res);
       }
     );
   }
@@ -232,25 +264,30 @@ const Images = () => {
       return;
     }
 
+    const data = {
+      spaceId: spaceId,
+      albumId: currentAlbum,
+      name: formAlbum.name,
+      description: formAlbum.description,
+    };
+
     setIsLoading(true);
     setOpenModal((prev) => ({ ...prev, addAlbum: false }));
-    apiRequest(`${BASEURL}/album`, requestSetting("POST", formAlbum)).then(
-      (res) => {
-        if (res.message == "The token is malformed.")
-          navigate("/login", { replace: true });
+    apiRequest(`${BASEURL}/album`, requestSetting("POST", data)).then((res) => {
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
 
-        if (res.success) {
-          toast.custom(<Alert type="success" message="Success Create Album" />);
+      if (res.success) {
+        toast.custom(<Alert type="success" message="Success Create Album" />);
 
-          setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
-          setLastRefresh(new Date());
-        }
-
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 1000);
+        setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
+        setLastRefresh(new Date());
       }
-    );
+
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+    });
   }
 
   function handleOnEditAlbum() {
@@ -261,25 +298,30 @@ const Images = () => {
       return;
     }
 
+    const data = {
+      spaceId: spaceId,
+      albumId: currentAlbum,
+      name: formAlbum.name,
+      description: formAlbum.description,
+    };
+
     setIsLoading(true);
     setOpenModal((prev) => ({ ...prev, editAlbum: false }));
-    apiRequest(`${BASEURL}/album`, requestSetting("PUT", formAlbum)).then(
-      (res) => {
-        if (res.message == "The token is malformed.")
-          navigate("/login", { replace: true });
+    apiRequest(`${BASEURL}/album`, requestSetting("PUT", data)).then((res) => {
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
 
-        if (res.success) {
-          toast.custom(<Alert type="success" message="Success Change Album" />);
+      if (res.success) {
+        toast.custom(<Alert type="success" message="Success Change Album" />);
 
-          setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
-          setLastRefresh(new Date());
-        }
-
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 1000);
+        setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
+        setLastRefresh(new Date());
       }
-    );
+
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+    });
   }
 
   function handleDeleteAlbum() {
@@ -287,26 +329,25 @@ const Images = () => {
     setOpenModal((prev) => ({ ...prev, editAlbum: false }));
 
     const data = {
-      albumId: formAlbum.albumId,
-      spaceId: formAlbum.spaceId,
+      spaceId: spaceId,
+      albumId: currentAlbum,
     };
 
-    apiRequest(`${BASEURL}/album`, requestSetting("DETELE", data)).then(
+    apiRequest(`${BASEURL}/album`, requestSetting("DELETE", data)).then(
       (res) => {
-        console.log(res);
         if (res.message == "The token is malformed.")
           navigate("/login", { replace: true });
 
         if (res.success) {
+          setIsLoading(false);
+
           toast.custom(<Alert type="success" message="Success Delete Album" />);
 
           setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
+          setFolders([]);
+          setFiles([]);
           setLastRefresh(new Date());
         }
-
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 1000);
       }
     );
   }
@@ -317,9 +358,16 @@ const Images = () => {
       return;
     }
 
+    const data = {
+      spaceId: spaceId,
+      albumId: currentAlbum,
+      path: path,
+      name: formFolder.name,
+    };
+
     setIsLoading(true);
     setOpenModal((prev) => ({ ...prev, addFolder: false }));
-    apiRequest(`${BASEURL}/folder`, requestSetting("POST", formFolder)).then(
+    apiRequest(`${BASEURL}/folder`, requestSetting("POST", data)).then(
       (res) => {
         if (res.message == "The token is malformed.")
           navigate("/login", { replace: true });
@@ -346,34 +394,42 @@ const Images = () => {
       return;
     }
 
+    const data = {
+      spaceId: spaceId,
+      albumId: currentAlbum,
+      folderId: currentFolder,
+      path: path,
+    };
+
     setIsLoading(true);
     setOpenModal((prev) => ({ ...prev, editFolder: false }));
-    apiRequest(
-      `${BASEURL}/folder/rename`,
-      requestSetting("PUT", formFolder)
-    ).then((res) => {
-      if (res.message == "The token is malformed.")
-        navigate("/login", { replace: true });
+    apiRequest(`${BASEURL}/folder/rename`, requestSetting("PUT", data)).then(
+      (res) => {
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
 
-      if (res.success) {
-        toast.custom(<Alert type="success" message="Success Change Folder" />);
+        if (res.success) {
+          toast.custom(
+            <Alert type="success" message="Success Change Folder" />
+          );
 
-        setFormFolder((prev) => ({ ...prev, name: "" }));
-        setLastRefresh(new Date());
+          setFormFolder((prev) => ({ ...prev, name: "" }));
+          setLastRefresh(new Date());
+        }
+
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
       }
-
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 1000);
-    });
+    );
   }
 
   function handleDeleteFolder() {
     const data = {
-      albumId: formFolder.albumId,
-      spaceId: formFolder.spaceId,
+      albumId: currentAlbum,
+      spaceId: spaceId,
       folderId: formFolder.folderId,
-      path: path.path,
+      path: path,
     };
 
     setIsLoading(true);
@@ -382,9 +438,8 @@ const Images = () => {
       confirmDeleteFolder: false,
       editFolder: false,
     }));
-    apiRequest(`${BASEURL}/folder`, requestSetting("DETELE", data)).then(
+    apiRequest(`${BASEURL}/folder`, requestSetting("DELETE", data)).then(
       (res) => {
-        console.log(res);
         if (res.message == "The token is malformed.")
           navigate("/login", { replace: true });
 
@@ -394,6 +449,38 @@ const Images = () => {
           );
 
           setFormFolder((prev) => ({ ...prev, name: "" }));
+          setLastRefresh(new Date());
+        }
+
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
+      }
+    );
+  }
+
+  function handleDeleteFile() {
+    const data = {
+      albumId: currentAlbum,
+      spaceId: spaceId,
+      path: path,
+      filename: formFile.filename,
+    };
+
+    setIsLoading(true);
+    setOpenModal((prev) => ({
+      ...prev,
+      confirmDeleteFile: false,
+    }));
+    apiRequest(`${BASEURL}/file`, requestSetting("DELETE", data)).then(
+      (res) => {
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
+
+        if (res.success) {
+          toast.custom(<Alert type="success" message="Success Delete File" />);
+
+          setFormFile((prev) => ({ ...prev, filename: "" }));
           setLastRefresh(new Date());
         }
 
@@ -424,6 +511,7 @@ const Images = () => {
         break;
       case "delete_file":
         setOpenModal((prev) => ({ ...prev, confirmDeleteFile: false }));
+        setFormFile((prev) => ({ ...prev, filename: "" }));
         break;
       case "delete_folder":
         setOpenModal((prev) => ({ ...prev, confirmDeleteFolder: false }));
@@ -433,43 +521,98 @@ const Images = () => {
     }
   }
 
+  function changesPath(newPath) {
+    const pathString = String(path);
+
+    if (path !== "root") {
+      var pathArr = pathString.split("/");
+
+      pathArr.push(newPath);
+      var pathJoin = pathArr.join("/");
+    } else {
+      setPath(newPath);
+      var pathJoin = String(newPath);
+    }
+
+    setPath(pathJoin);
+
+    const data = {
+      spaceId: spaceId,
+      albumId: currentAlbum,
+      path: pathJoin,
+    };
+
+    apiRequest(`${BASEURL}/folder/show`, requestSetting("POST", data)).then(
+      (res) => {
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
+
+        if (res.statusCode == 500) {
+          setFolders([]);
+          setFiles([]);
+          return;
+        }
+
+        setFolders(res?.folderList);
+        setFiles(res?.fileList);
+      }
+    );
+  }
+
+  function backToTopPath(currentPath) {
+    var pathArr = currentPath.split("/");
+    pathArr.pop();
+    let pathJoin = pathArr.join("/");
+
+    if (pathJoin == "") pathJoin = "root";
+
+    setPath(pathJoin);
+
+    const data = {
+      spaceId: spaceId,
+      albumId: currentAlbum,
+      path: pathJoin,
+    };
+
+    apiRequest(`${BASEURL}/folder/show`, requestSetting("POST", data)).then(
+      (res) => {
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
+
+        if (res.statusCode == 500) {
+          setFolders([]);
+          setFiles([]);
+          return;
+        }
+
+        setFolders(res?.folderList);
+        setFiles(res?.fileList);
+      }
+    );
+  }
+
   useEffect(() => {
     getSpaces();
     getAlbums();
     getFolders();
+    console.log("reresh cuyy");
   }, [lastRefresh]);
 
   useEffect(() => {
     getFolders();
-    setFormFolder((prev) => ({
-      ...prev,
-      path: "root",
-    }));
-    setPath((prev) => ({ ...prev, path: "root" }));
   }, [lastChangedAlbum]);
 
   useEffect(() => {
-    let parentChildArr = [];
-    currentFolder !== "root" ? parentChildArr.push(currentFolder) : [];
-
-    setPath({
-      previousPath: path.path,
-      path: parentChildArr.length == 0 ? "root" : parentChildArr.join("/"),
-    });
-
     getFolders();
   }, [currentFolder]);
-
-  console.log(path);
 
   useEffect(() => {
     const closeModal = (e) => {
       if (e.target == areaCloseRef.current) {
-        setIsOpenModalImage(false);
+        setOpenModal((prev) => ({ ...prev, modalDetailImage: false }));
       }
     };
     document.body.addEventListener("click", closeModal);
-    // console.log(isOpenModalImage);
 
     return () => {
       document.body.removeEventListener("click", closeModal);
@@ -485,6 +628,8 @@ const Images = () => {
 
     return () => window.removeEventListener("resize", handleResize);
   });
+
+  console.log(path);
 
   return (
     <div>
@@ -644,15 +789,22 @@ const Images = () => {
         onCancel={() => handleCancel("delete_folder")}
         title={formFolder.name}
       />
+      {/* Modal Delete Folder */}
+      <PopupDelete
+        onDelete={handleDeleteFile}
+        openModal={openModal.confirmDeleteFile}
+        onCancel={() => handleCancel("delete_file")}
+        // title={formFolder.key}
+      />
 
       <ModalImageDetailComponent
-        setIsOpenModalImage={setIsOpenModalImage}
-        isOpenModalImage={isOpenModalImage}
+        setOpenModal={setOpenModal}
+        openModal={openModal.modalDetailImage}
       />
-      {isOpenModalImage == true && (
+      {openModal.modalDetailImage && (
         <div
           className={`${
-            isOpenModalImage ? "area-close-modal-image" : ""
+            openModal.modalDetailImage ? "area-close-modal-image" : ""
           } fixed h-full w-[100%] bg-orange-300 opacity-[0%] left-0 top-0 z-[1]`}
           ref={areaCloseRef}
         ></div>
@@ -761,6 +913,8 @@ const Images = () => {
               <ListAlbumComponent
                 listItem={albums}
                 setLastChangedAlbum={setLastChangedAlbum}
+                setPath={setPath}
+                path={path}
                 setCurrentAlbum={setCurrentAlbum}
                 setFormAlbum={setFormAlbum}
                 setFormFolder={setFormFolder}
@@ -793,20 +947,20 @@ const Images = () => {
                   </div>
                 )}
 
-                {isLoading && <h2 className="text-center">Loading ...</h2>}
-                {console.log(folders)}
                 {!isLoading && (
                   <ListImageComponent
                     listFolders={folders}
+                    listFiles={files}
                     setOpenModal={setOpenModal}
                     setFormFolder={setFormFolder}
-                    setPath={setPath}
+                    setFormFile={setFormFile}
+                    changesPath={changesPath}
+                    backToTopPath={backToTopPath}
                     path={path}
                     setCurrentFolder={setCurrentFolder}
-                    currentFolder={currentFolder}
                   />
                 )}
-                {folders.length == 0 && (
+                {currentAlbum == "" && (
                   <h2 className="text-center pt-[1rem] translate-y-[-34rem]">
                     No Album Selected{" "}
                   </h2>

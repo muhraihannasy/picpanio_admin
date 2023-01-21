@@ -19,6 +19,9 @@ export const requestSetting = (method, body = {}) => {
     case "PUT":
       header.body = JSON.stringify(body);
       break;
+    case "DELETE":
+      header.body = JSON.stringify(body);
+      break;
     default:
       break;
   }
