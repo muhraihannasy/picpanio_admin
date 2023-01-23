@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { apiRequest, BASEURL, requestSetting } from "../../util/Api";
+import { apiRequest, BASEURL, requestSetting } from "../../../util/Api";
 
 // Icon
 import { GoTrashcan } from "react-icons/go";
@@ -11,27 +11,26 @@ import { IoIosAlbums } from "react-icons/io";
 import { BsFillFolderFill } from "react-icons/bs";
 
 // Component
-import HeaderDashboardComponent from "../../components/HeaderDashboardComponent";
-import PlanComponent from "../../components/planComponent";
-import ListAlbumComponent from "../../components/ListAlbumComponent";
-import ListImageComponent from "../../components/ListImageComponent";
-import ModalAddAlbumComponent from "../../components/ModalAddAlbumComponent";
-import ModalImageDetailComponent from "../../components/ModalImageDetailComponent";
-import PopupAdd from "../../components/popup/PopupAdd";
-import PopupEdit from "../../components/popup/PopupEdit";
+import HeaderDashboardComponent from "../../../components/HeaderDashboardComponent";
+import PlanComponent from "../../../components/planComponent";
+import ListAlbumComponent from "../../../components/ListAlbumComponent";
+import ListImageComponent from "../../../components/ListImageComponent";
+import ModalImageDetailComponent from "../../../components/ModalImageDetailComponent";
+import PopupAdd from "../../../components/popup/PopupAdd";
+import PopupEdit from "../../../components/popup/PopupEdit";
+import PopupDelete from "../../../components/popup/PopupDelete";
+import Loading from "../../../components/loading";
+import Alert from "../../../components/alert/alert";
 
 // images
-import repeatIcon from "../../assets/images/repeat-icon.png";
-import galeryIcon from "../../assets/images/icon/gallery.png";
-import { formatBytes } from "../../util/config";
+import repeatIcon from "../../../assets/images/repeat-icon.png";
+import galeryIcon from "../../../assets/images/icon/gallery.png";
+import { formatBytes } from "../../../util/config";
 import { toast, Toaster } from "react-hot-toast";
-import Alert from "../../components/alert/alert";
-import Loading from "../../components/loading";
-import PopupDelete from "../../components/popup/PopupDelete";
 
 // Util
 
-const Images = () => {
+const SpaceDetail = () => {
   const [innerWidth, setInnerWidth] = useState(window.innerWidth);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -63,6 +62,7 @@ const Images = () => {
   const [imagesLength, setImagesLength] = useState(0);
   const [currentAlbum, setCurrentAlbum] = useState("");
   const [currentFolder, setCurrentFolder] = useState("");
+  const [currentFile, setCurrentFile] = useState("");
 
   const [copyUrl, setCopyUrl] = useState("");
 
@@ -95,62 +95,6 @@ const Images = () => {
       </div>
     );
   }
-
-  // When Upload Images
-  // function handleUpload(files) {
-  //   setImagesLength(files.length);
-  //   setIsUploading(true);
-
-  //   const token = localStorage.getItem("acctkn");
-
-  //   const formData = new FormData();
-
-  //   formData.append("file", files);
-  //   formData.append("spaceId", spaceId);
-  //   formData.append("albumId", currentAlbum);
-  //   formData.append("path", "root");
-
-  //   const header = {
-  //     method: "POST",
-  //     headers: {
-  //       Authorization: `Bearer ${token}`,
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: formData,
-  //     redirect: "follow",
-  //   };
-
-  //   apiRequest(`${BASEURL}/file`, header).then((res) => {
-  //     if (res.message == "The token is malformed.")
-  //       navigate("/login", { replace: true });
-
-  //     // if (res.success) {
-  //     //   toast.custom(
-  //     //     <Alert type="success" message="Success Create Album" />
-  //     //   );
-
-  //     // setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
-  //     // setLastRefresh(new Date());
-  //     // }
-
-  //     setTimeout(() => {
-  //       setIsLoading(false);
-  //       setIsUploading(false);
-  //     }, 1000);
-  //   });
-
-  //   // if (formAlbum.name == "" || formAlbum.description == "") {
-  //   //   toast.custom(
-  //   //     <Alert type="error" message="name or description cannot be empty" />
-  //   //   );
-  //   //   return;
-  //   // }
-
-  //   // setIsLoading(true);
-
-  //   // setTimeout(() => {
-  //   // }, 1500);
-  // }
 
   function handleUpload(files) {
     setImagesLength(files.length);
@@ -186,9 +130,11 @@ const Images = () => {
           toast.custom(
             <Alert type="success" message="Success uploaded files" />
           );
-          setIsUploading(false);
-
           setLastRefresh(new Date());
+
+          setTimeout(() => {
+            setIsUploading(false);
+          }, 1000);
         }
       })
       .catch((error) => console.log("error", error));
@@ -227,6 +173,7 @@ const Images = () => {
       const firstAlbumId = res.album[0]?.id;
 
       setAlbums(res.album);
+      setCurrentAlbum(firstAlbumId);
       setFormFolder((prev) => ({ ...prev, albumId: firstAlbumId }));
     });
   }
@@ -255,6 +202,8 @@ const Images = () => {
       }
     );
   }
+
+  function getFile() {}
 
   function handleOnAddAlbum() {
     if (formAlbum.name == "" || formAlbum.description == "") {
@@ -560,7 +509,7 @@ const Images = () => {
   }
 
   function backToTopPath(currentPath) {
-    var pathArr = currentPath.split("/");
+    const pathArr = currentPath.split("/");
     pathArr.pop();
     let pathJoin = pathArr.join("/");
 
@@ -798,6 +747,7 @@ const Images = () => {
       />
 
       <ModalImageDetailComponent
+        currentFile={currentFile}
         setOpenModal={setOpenModal}
         openModal={openModal.modalDetailImage}
       />
@@ -951,13 +901,14 @@ const Images = () => {
                   <ListImageComponent
                     listFolders={folders}
                     listFiles={files}
+                    setCurrentFolder={setCurrentFolder}
+                    setCurrentFile={setCurrentFile}
                     setOpenModal={setOpenModal}
                     setFormFolder={setFormFolder}
                     setFormFile={setFormFile}
                     changesPath={changesPath}
                     backToTopPath={backToTopPath}
                     path={path}
-                    setCurrentFolder={setCurrentFolder}
                   />
                 )}
                 {currentAlbum == "" && (
@@ -974,4 +925,4 @@ const Images = () => {
   );
 };
 
-export default Images;
+export default SpaceDetail;

@@ -13,11 +13,12 @@ import CopyText from "../util/CopyText";
 const ListImageComponent = ({
   listFolders,
   listFiles,
+  setCurrentFolder,
+  setCurrentFile,
   setOpenModal,
   setFormFolder,
   setFormFile,
   path,
-  setCurrentFolder,
   changesPath,
   backToTopPath,
 }) => {
@@ -97,9 +98,13 @@ const ListImageComponent = ({
             >
               <div
                 className="flex items-center gap-3 item-image flex-1"
-                onClick={() =>
-                  setOpenModal((prev) => ({ ...prev, modalDetailImage: true }))
-                }
+                onClick={() => {
+                  setCurrentFile(item.url),
+                    setOpenModal((prev) => ({
+                      ...prev,
+                      modalDetailImage: true,
+                    }));
+                }}
               >
                 <img src={image} alt="" className="w-[30px] item-image" />
                 <h3 className="text-[12px] item-image">{item.key}</h3>

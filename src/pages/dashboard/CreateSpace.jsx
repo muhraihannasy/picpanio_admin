@@ -1,12 +1,21 @@
 import { useRef, useState } from "react";
 import { toast, Toaster } from "react-hot-toast";
+
+// Utils
+import { apiRequest, BASEURL, requestSetting } from "../../util/Api";
+import Route from "../../util/Route";
+
+// Component
 import Alert from "../../components/alert/alert";
 import HeaderDashboardComponent from "../../components/HeaderDashboardComponent";
 import Loading from "../../components/loading";
-import { BASEURL, requestSetting } from "../../util/Api";
-import Route from "../../util/Route";
+import PopupPay from "../../components/popup/PopupPay";
 
 const CreateSpace = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [openModalPay, setOpenModalPay] = useState(false);
+  const [terms, setTerms] = useState(false);
+
   const [space, setSpace] = useState({
     name: "",
     slug: "",
@@ -15,8 +24,7 @@ const CreateSpace = () => {
     region: "",
     billPeriod: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [terms, setTerms] = useState(false);
+  const [paypalLink, setPaypalLink] = useState("");
   const btnCreateSpaceRef = useRef();
 
   function handleChangeTerm() {
@@ -24,41 +32,77 @@ const CreateSpace = () => {
     btnCreateSpaceRef.current.disabled = terms ? true : false;
   }
 
-  function handleSubmit() {
-    fetch(`${BASEURL}/space/order`, requestSetting("POST", space))
-      .then((res) => res.json())
-      .then((res) => {
-        setIsLoading(false);
-        if (res.error) {
-          toast.custom(<Alert type="error" message={res.error} />);
-          return;
-        }
+  function checkForm() {
+    let error = false;
+    const data = { ...space };
 
+    for (const spaceProp in space) {
+      if (data[spaceProp] == "") error = true;
+      if (data.plan == "Free" && data.billPeriod == "") error = false;
+    }
+
+    return error;
+  }
+
+  function handleSubmit() {
+    const data = { ...space };
+
+    if (space.plan == "Free") data.billPeriod = "";
+    if (checkForm()) {
+      toast.custom(<Alert type="error" message="Your space is incomplete" />);
+      return;
+    }
+
+    apiRequest(`${BASEURL}/space/order`, requestSetting("POST", space)).then(
+      (res) => {
+        "";
         if (res.success) {
           toast.custom(
             <Alert type="success" message="Successfuly Created Space" />
           );
+          setOpenModalPay(true);
+          setPaypalLink(res?.paypal?.links[1]?.href);
+          console.log(res?.paypal?.links[1]?.href);
         }
 
-        setTimeout(() => {
-          navigate(Route.DashboardSpaces, { replace: true });
-        }, 1000);
-      })
-      .catch((e) => {
-        console.log(e);
-      });
+        setOpenModalPay(true);
+      }
+    );
+
+    // fetch(`${BASEURL}/space/order`, requestSetting("POST", space))
+    //   .then((res) => res.json())
+    //   .then((res) => {
+    //     setIsLoading(false);
+    //     if (res.error) {
+    //       toast.custom(<Alert type="error" message={res.error} />);
+    //       return;
+    //     }
+
+    //     if (res.success) {
+    //       toast.custom(
+    //         <Alert type="success" message="Successfuly Created Space" />
+    //       );
+    //     }
+
+    //     setTimeout(() => {
+    //       navigate(Route.DashboardSpaces, { replace: true });
+    //     }, 1000);
+    //   })
+    //   .catch((e) => {
+    //     console.log(e);
+    //   });
   }
   return (
     <>
       {/* Toast */}
       <Toaster />
-
+      {/* Popup Pay */}
+      <PopupPay openModal={openModalPay} to={paypalLink} />
+      {console.log(paypalLink)}
       {/* Loading */}
       {isLoading && <Loading />}
-
       {/* Header */}
       <HeaderDashboardComponent />
-
       {/* Main Content */}
       <main>
         <section>
@@ -323,7 +367,7 @@ const ChooseRegion = ({ space, setSpace }) => {
   );
 };
 
-const SettingSpace = ({ space, setSpace, selectedBill, setSelectedBill }) => {
+const SettingSpace = ({ space, setSpace }) => {
   return (
     <div className="mb-[20px] grid md:grid-cols-2 grid-cols-1 gap-4">
       <div className="w-full md:mb-[0] mb-[1.5rem] ">
@@ -354,23 +398,27 @@ const SettingSpace = ({ space, setSpace, selectedBill, setSelectedBill }) => {
         <div className="flex items-center gap-[0.5rem]">
           <button
             className={`h-[38px] px-6 bg-ninety transition-all rounded-[8px] border   ${
-              selectedBill == "Monthly"
+              space.billPeriod == "Monthly"
                 ? "border-primary"
                 : "border-transparent"
             }`}
-            onClick={() => setSelectedBill("Monthly")}
+            onClick={() =>
+              setSpace((prev) => ({ ...prev, billPeriod: "Monthly" }))
+            }
           >
             Monthly
           </button>
           <button
             className={`h-[38px] px-6 bg-ninety transition-all rounded-[8px] border ${
-              selectedBill == "Annualy"
+              space.billPeriod == "Annually"
                 ? "border-primary"
                 : "border-transparent"
             }`}
-            onClick={() => setSelectedBill("Annualy")}
+            onClick={() =>
+              setSpace((prev) => ({ ...prev, billPeriod: "Annually" }))
+            }
           >
-            Annualy <span className="text-ten">(save 18%)</span>
+            Annually <span className="text-ten">(save 18%)</span>
           </button>
         </div>
       </div>

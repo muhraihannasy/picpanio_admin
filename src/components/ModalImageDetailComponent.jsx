@@ -6,30 +6,55 @@ import CopyText from "../util/CopyText";
 // Images
 import images from "../assets/images/images-dummy2.png";
 import { IoCopySharp } from "react-icons/io5";
+import { BASEURL, apiRequest, requestSetting } from "../util/Api";
 
-const ModalImageDetailComponent = ({ setOpenModal, openModal }) => {
+const ModalImageDetailComponent = ({
+  currentFile,
+  setOpenModal,
+  openModal,
+}) => {
   const [imageProperties, setImageProperties] = useState({
     width: "",
     height: "",
     crop: "",
+    grayscale: "",
+    fit: "",
     quality: "",
     rotate: "",
     flip: "",
     darken: "",
     blur: "",
   });
-  const [imageUrl, setImageUrl] = useState("");
+  const [image, setImage] = useState("");
   const [copyUrl, setCopyUrl] = useState("");
   const urlRef = useRef();
 
-  useEffect(() => {
-    setImageUrl(
-      `https://img.picpan.io/tyuiwncgvbnmskbnv-ghjkdbqo/ghudlkjbyvybundhycvbnmfihj-bnd-bndfu.jpg`
-    );
-  }, []);
+  let imageUrl = currentFile;
+
+  function getFile(url) {
+    var requestOptions = {
+      method: "GET",
+      redirect: "follow",
+    };
+    fetch(url, requestOptions)
+      .then((response) => response.text())
+      .then((result) => console.log(result))
+      .catch((error) => console.log("error", error));
+    // apiRequest(imageUrl, requestSetting("GET")).then((res) => {
+    //   console.log(res);
+    // });
+  }
+
   useEffect(() => {
     setCopyUrl(urlRef.current.textContent);
+    getFile(urlRef.current.textContent);
   }, [imageProperties]);
+
+  useEffect(() => {
+    setImage(
+      urlRef.current.textContent != "?" ? urlRef.current.textContent : imageUrl
+    );
+  }, [imageProperties, currentFile]);
 
   return (
     <aside
@@ -72,8 +97,8 @@ const ModalImageDetailComponent = ({ setOpenModal, openModal }) => {
           </div>
         </div>
 
-        <div>
-          <img src={images} alt="" className="w-[90%]" />
+        <div className="w-[35rem] h-[15rem] overflow-hidden bg-ninety rounded-[10px] flex items-center justify-center">
+          <img src={image} alt="" className="" />
         </div>
       </div>
 
@@ -115,38 +140,6 @@ const ModalImageDetailComponent = ({ setOpenModal, openModal }) => {
           </div>
           <div className="flex flex-col gap-[4px] mt-[0.5rem]">
             <label htmlFor="" className="text-[11px]">
-              Crop
-            </label>
-            <input
-              type="text"
-              className="w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
-              onChange={(e) =>
-                setImageProperties({
-                  ...imageProperties,
-                  crop: e.target.value,
-                })
-              }
-              value={imageProperties.crop}
-            />
-          </div>
-          <div className="flex flex-col gap-[4px] mt-[0.5rem]">
-            <label htmlFor="" className="text-[11px]">
-              Quality
-            </label>
-            <input
-              type="text"
-              className="w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
-              onChange={(e) =>
-                setImageProperties({
-                  ...imageProperties,
-                  quality: e.target.value,
-                })
-              }
-              value={imageProperties.quality}
-            />
-          </div>
-          <div className="flex flex-col gap-[4px] mt-[0.5rem]">
-            <label htmlFor="" className="text-[11px]">
               Rotate
             </label>
             <input
@@ -163,10 +156,57 @@ const ModalImageDetailComponent = ({ setOpenModal, openModal }) => {
           </div>
           <div className="flex flex-col gap-[4px] mt-[0.5rem]">
             <label htmlFor="" className="text-[11px]">
+              Fit
+            </label>
+            <select
+              name=""
+              id=""
+              className="w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
+              onChange={(e) =>
+                setImageProperties({
+                  ...imageProperties,
+                  fit: e.target.value,
+                })
+              }
+              value={imageProperties.fit}
+            >
+              <option value="">Choose...</option>
+              <option value="cover">Cover</option>
+              <option value="contain">Contain</option>
+              <option value="fill">Fill</option>
+              <option value="inside">Inside</option>
+              <option value="outside">Outside</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-[4px] mt-[0.5rem]">
+            <label htmlFor="" className="text-[11px]">
+              Grayscale
+            </label>
+            <select
+              name=""
+              id=""
+              className="w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
+              onChange={(e) =>
+                setImageProperties({
+                  ...imageProperties,
+                  grayscale: e.target.value,
+                })
+              }
+              value={imageProperties.grayscale}
+            >
+              <option value="">Choose...</option>
+              <option value="yes">Yes</option>
+              <option value="">No</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-[4px] mt-[0.5rem]">
+            <label htmlFor="" className="text-[11px]">
               Flip
             </label>
-            <input
-              type="text"
+
+            <select
+              name=""
+              id=""
               className="w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
               onChange={(e) =>
                 setImageProperties({
@@ -175,9 +215,30 @@ const ModalImageDetailComponent = ({ setOpenModal, openModal }) => {
                 })
               }
               value={imageProperties.flip}
-            />
+            >
+              <option value="">Choose...</option>
+              <option value="vertical">Vertical</option>
+              <option value="horizontal">horizontal</option>
+              <option value="both">both</option>
+            </select>
           </div>
-          <div className="flex flex-col gap-[4px] mt-[0.5rem]">
+          {/* <div className="flex flex-col gap-[4px] mt-[0.5rem]">
+            <label htmlFor="" className="text-[11px]">
+              Quality
+            </label>
+            <input
+              type="text"
+              className="w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
+              onChange={(e) =>
+                setImageProperties({
+                  ...imageProperties,
+                  quality: e.target.value,
+                })
+              }
+              value={imageProperties.quality}
+            />
+          </div> */}
+          {/* <div className="flex flex-col gap-[4px] mt-[0.5rem]">
             <label htmlFor="" className="text-[11px]">
               Darken
             </label>
@@ -208,7 +269,7 @@ const ModalImageDetailComponent = ({ setOpenModal, openModal }) => {
               }
               value={imageProperties.blur}
             />
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -225,9 +286,9 @@ const ModalImageDetailComponent = ({ setOpenModal, openModal }) => {
               h=<span className="font-bold">{imageProperties.height}</span>&
             </>
           )}
-          {imageProperties.crop !== "" && (
+          {imageProperties.fit !== "" && (
             <>
-              crop=<span className="font-bold">{imageProperties.crop}</span>&
+              fit=<span className="font-bold">{imageProperties.fit}</span>&
             </>
           )}
           {imageProperties.quality !== "" && (
@@ -242,14 +303,21 @@ const ModalImageDetailComponent = ({ setOpenModal, openModal }) => {
               &
             </>
           )}
-          {imageProperties.flip !== "" && (
+          {imageProperties.grayscale !== "" && (
             <>
-              flip=<span className="font-bold">{imageProperties.flip}</span>&
+              grayscale=
+              <span className="font-bold">{imageProperties.grayscale}</span>&
             </>
           )}
           {imageProperties.darken !== "" && (
             <>
               darken=<span className="font-bold">{imageProperties.darken}</span>
+              &
+            </>
+          )}
+          {imageProperties.flip !== "" && (
+            <>
+              vertical=<span className="font-bold">{imageProperties.flip}</span>
               &
             </>
           )}

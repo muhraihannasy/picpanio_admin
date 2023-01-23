@@ -1,6 +1,9 @@
-import { useEffect } from "react";
-import { useState } from "react";
-import { Toaster } from "react-hot-toast";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Toaster, toast } from "react-hot-toast";
+
+// Util
+import { BASEURL, apiRequest, requestSetting } from "../../../util/Api";
 
 // Icon
 import { SlArrowRight } from "react-icons/sl";
@@ -10,6 +13,7 @@ import ButtonComponent from "../../../components/ButtonComponent";
 import HeaderDashboardComponent from "../../../components/HeaderDashboardComponent";
 import InputComponent from "../../../components/InputComponent";
 import Loading from "../../../components/loading";
+import Alert from "../../../components/alert/alert";
 
 const menuTabs = [
   {
@@ -24,6 +28,7 @@ const menuTabs = [
 
 const Profile = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
   const [currentMenu, setCurrentMenu] = useState("");
   const [formProfile, setFormProfile] = useState({
     fullname: "",
@@ -32,11 +37,106 @@ const Profile = () => {
     passwordConfirmation: "",
   });
   const [isPaid, setIsPaid] = useState(true);
+  const navigate = useNavigate();
+
+  // function getListOrder() {
+  //   apiRequest(`${BASEURL}/space`, requestSetting("GET")).then((res) => {
+  //     if (res.message == "The token is malformed.")
+  //       navigate("/login", { replace: true });
+
+  //     res.spaces.forEach((space) => {
+  //       spacesArr.push(space.space);
+  //     });
+
+  //     setSpaces(spacesArr);
+
+  //     setTimeout(() => {
+  //       setIsLoading(false);
+  //     }, 1000);
+  //   });
+  // }
+
+  function checkFormSaveProfile(data) {
+    let error = false;
+    if (formProfile.password !== "" && formProfile.passwordConfirmation == "") {
+      toast.custom(
+        <Alert type="error" message="Password Confirmation must be filled" />
+      );
+
+      error = true;
+    }
+
+    if (formProfile.password !== formProfile.passwordConfirmation) {
+      toast.custom(
+        <Alert
+          type="error"
+          message="Password & Password Confirmation must be same"
+        />
+      );
+      error = true;
+    }
+
+    if (
+      formProfile.password !== "" ||
+      formProfile.passwordConfirmation !== ""
+    ) {
+      data.password = formProfile.password;
+    }
+
+    return error;
+  }
+
+  function getUserInfo() {
+    apiRequest(`${BASEURL}/auth/account`, requestSetting("GET")).then((res) => {
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
+
+      setFormProfile((prev) => ({
+        ...prev,
+        fullname: res?.user?.name,
+        email: res?.user?.email,
+      }));
+
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+    });
+  }
+
+  function handleSaveProfile(e) {
+    e.preventDefault();
+
+    const data = {
+      name: formProfile.fullname,
+      email: formProfile.email,
+    };
+
+    if (checkFormSaveProfile(data)) return;
+
+    setIsLoading(true);
+    apiRequest(`${BASEURL}/account/change`, requestSetting("POST", data)).then(
+      (res) => {
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
+
+        if (res.success) {
+          toast.custom(
+            <Alert type="success" message="Success Changes Account" />
+          );
+
+          setLastRefresh(new Date());
+        }
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
+      }
+    );
+  }
 
   useEffect(() => {
-    setIsLoading(false);
-    setCurrentMenu(menuTabs[1].id);
-  }, []);
+    getUserInfo();
+    setCurrentMenu(menuTabs[0].id);
+  }, [lastRefresh]);
 
   useEffect(() => {
     console.log(currentMenu);
@@ -55,7 +155,7 @@ const Profile = () => {
 
       <main>
         <section className="mt-[37px]">
-          <div className="container grid lg:grid-cols-4 md:grid-cols-3 grid-cols-1">
+          <div className="container flex md:flex-row flex-col gap-[2.5rem]">
             {/* Tabs */}
             <Tabs
               menu={menuTabs}
@@ -68,6 +168,7 @@ const Profile = () => {
               <ProfileScreen
                 setFormData={setFormProfile}
                 formData={formProfile}
+                onSubmit={(e) => handleSaveProfile(e)}
               />
             )}
             {currentMenu == menuTabs[1].id && (
@@ -85,7 +186,7 @@ const Profile = () => {
 };
 
 const Tabs = ({ menu, handleOnClick, currentMenu }) => {
-  const styleUl = "flex flex-col gap-2 col-span-1 ";
+  const styleUl = "flex flex-col gap-2";
   const styleLi =
     "w-[240px] h-[43px] flex items-center justify-between px-4 rounded-[4px] cursor-pointer text-[14px] transition-all";
   const activeMenu = "bg-secondary text-white";
@@ -109,13 +210,14 @@ const Tabs = ({ menu, handleOnClick, currentMenu }) => {
   );
 };
 
-const ProfileScreen = ({ formData, setFormData }) => {
-  const styleForm = "lg:col-span-3 md:col-span-2 col-span-1 lg:w-[85%]";
-  const styleWrapper = "grid grid-cols-2 gap-5 mb-[25px] ";
+const ProfileScreen = ({ formData, setFormData, onSubmit }) => {
+  const styleForm = "w-full";
+  const styleWrapper = "grid md:grid-cols-2 grid-cols-1 gap-5 mb-[25px] ";
   const styleInputGroup = "";
   const styleButton = "";
+
   return (
-    <form className={styleForm}>
+    <form className={styleForm} onSubmit={onSubmit}>
       <div className={styleWrapper}>
         <div className={styleInputGroup}>
           <label htmlFor="fullname">full name</label>
@@ -129,11 +231,13 @@ const ProfileScreen = ({ formData, setFormData }) => {
           />
         </div>
         <div className={styleInputGroup}>
-          <label htmlFor="password">password (leave blank if no change)</label>
+          <label htmlFor="password">
+            password{" "}
+            <span className="text-[12px]"> (*leave blank if no change)</span>
+          </label>
           <InputComponent
             field="password"
             type="password"
-            require={true}
             style="outline"
             value={formData}
             setValue={setFormData}
@@ -153,9 +257,8 @@ const ProfileScreen = ({ formData, setFormData }) => {
         <div className={styleInputGroup}>
           <label htmlFor="password_confirmation">password confimation</label>
           <InputComponent
-            field="password_confirmation"
+            field="passwordConfirmation"
             type="password_confirmation"
-            require={true}
             style="outline"
             value={formData}
             setValue={setFormData}
@@ -175,55 +278,66 @@ const ProfileScreen = ({ formData, setFormData }) => {
 };
 
 const InvoiceScreen = ({ isPaid }) => {
-  const styleTable = "lg:col-span-3 md:col-span-2 col-span-1 lg:w-[85%]";
+  const styleTable = "lg:w-full w-[40rem]";
   const styleTrHead = "border-b-2";
-  const styleTh = "text-eighty text-[16px] text-left w-[15rem] ";
+  const styleTh = "text-eighty text-[16px] text-left w-[15rem] text-eighty  ";
 
   return (
-    <table className={styleTable}>
-      <thead>
-        <tr className={styleTrHead}>
-          <th className={styleTh}>Invoice number</th>
-          <th className={`${styleTh} w-[9.9rem] `}>Date</th>
-          <th className={`${styleTh} w-[8rem] text-right `}>Amount billed</th>
-          <th className={`${styleTh} w-[10rem] text-center`}>Status</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody className="">
-        <tr>
-          <td className="text-primary font-semibold">#0001</td>
-          <td className="text-eighty ">24/07/2022</td>
-          <td className="text-eighty text-right">$9</td>
-          <td
-            className={`text-center bg-gre ${
-              isPaid ? "text-green-500" : "text-primary"
-            }`}
-          >
-            {isPaid ? "Paid" : "Unpaid"}
-          </td>
-          <td>{checkButtonIsPay(isPaid)}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div className="overflow-x-auto w-full mx-auto">
+      <table className={styleTable}>
+        <thead>
+          <tr className={styleTrHead}>
+            <th className={styleTh}>Invoice number</th>
+            <th className={`${styleTh}  `}>Date</th>
+            <th className={`${styleTh}  text-right `}>Amount billed</th>
+            <th className={`${styleTh}  text-center`}>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr className="pt-[1rem]">
+            <td className="text-primary font-semibold">#0001</td>
+            <td className="text-eighty ">24/07/2022</td>
+            <td className="text-eighty text-right">$9</td>
+            <td
+              className={`text-center bg-gre ${
+                isPaid ? "text-green-500" : "text-primary"
+              }`}
+            >
+              {isPaid ? "Paid" : "Unpaid"}
+            </td>
+            <td>{checkButtonIsPay(isPaid)} </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   );
 };
 
 function checkButtonIsPay(isPaid) {
-  switch (isPaid) {
+  let button = "";
+
+  switch (false) {
     case true:
-      return (
-        <ButtonComponent type="button" text="Receipt" bg="ten" color="white" />
+      button = (
+        <button className="bg-ten w-[86px] h-[36px] text-center text-[14px] rounded-md font-bold block text-white">
+          Receipt
+        </button>
       );
       break;
     case false:
-      return (
-        <ButtonComponent type="button" text="Paid" bg="eighty" color="white" />
+      button = (
+        <button className="bg-eighty w-[86px] h-[36px] text-center text-[14px] px-8 rounded-md font-bold block text-white">
+          Pay
+        </button>
       );
+
       break;
     default:
       break;
   }
+
+  return button;
 }
 
 export default Profile;

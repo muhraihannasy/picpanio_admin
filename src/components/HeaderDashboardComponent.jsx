@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { IoIosArrowDown } from "react-icons/io";
 import { IoCloseCircleSharp } from "react-icons/io5";
 import { VscListSelection } from "react-icons/vsc";
@@ -7,17 +7,35 @@ import { VscListSelection } from "react-icons/vsc";
 import Route from "../util/Route";
 import PlanComponent from "./planComponent";
 import { apiRequest, BASEURL, requestSetting } from "../util/Api";
+import { toast } from "react-hot-toast";
+import Alert from "./alert/alert";
 
 const HeaderDashboardComponent = () => {
   const location = useLocation();
   const [mobileNavbar, setMobileNavbar] = useState(false);
   const [dropdownActive, setDropdownActive] = useState(false);
   const [email, setEmail] = useState("");
+  const navigate = useNavigate();
 
   function getUserInfo() {
     apiRequest(`${BASEURL}/auth/account`, requestSetting("GET")).then((res) => {
       if (res.message == "The token is malformed.")
         navigate("/login", { replace: true });
+
+      setEmail(res.user.email);
+    });
+  }
+
+  function handleLogout() {
+    apiRequest(`${BASEURL}/auth/logout`, requestSetting("POST")).then((res) => {
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
+
+      if (res.success) {
+        toast.custom(<Alert type="success" message="Success Logout" />);
+        localStorage.removeItem("acctkn");
+        navigate("/login", { replace: true });
+      }
 
       setEmail(res.user.email);
     });
@@ -37,25 +55,27 @@ const HeaderDashboardComponent = () => {
           <ul className="flex items-center gap-4 max-[816px]:hidden">
             <li>
               <Link
-                to={Route.DashboardImages}
-                className={`${
-                  location.pathname == Route.DashboardImages && "font-bold"
-                }`}
-              >
-                Images
-              </Link>
-            </li>
-            <li>
-              <Link
                 to={Route.DashboardSpaces}
                 className={`
                 ${location.pathname == Route.DashboardSpaces && "font-bold"}
                 ${
                   location.pathname == Route.DashboardCreateSpace && "font-bold"
                 }
+                ${location.pathname.includes("spaces") && "font-bold"}
                 `}
               >
                 Spaces
+              </Link>
+            </li>
+            <li>
+              <Link
+                to={Route.DashboardUsers}
+                className={`
+                ${location.pathname == Route.DashboardUsers && "font-bold"}
+                ${location.pathname == Route.DashboardUsers && "font-bold"}
+                `}
+              >
+                Users
               </Link>
             </li>
             <li>
@@ -85,11 +105,14 @@ const HeaderDashboardComponent = () => {
               }`}
             >
               <ul className="px-5">
-                <li className="border-b border-b-[#A80D4E] pb-2 mb-1 text-right">
-                  <Link to="/account">Account</Link>
+                <li
+                  className="border-b border-b-[#A80D4E] pb-2 mb-1 text-right"
+                  onClick={() => navigate("/account")}
+                >
+                  Account
                 </li>
-                <li className="text-right">
-                  <button>Sign Out</button>
+                <li className="text-right" onClick={handleLogout}>
+                  Sign Out
                 </li>
               </ul>
             </div>

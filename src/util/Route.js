@@ -1,7 +1,7 @@
 const Route = {
-  DashboardImages: "/images",
   DashboardIntegration: "/integration",
   DashboardSpaces: "/spaces",
+  DashboardUsers: "/users",
   DashboardCreateSpace: "/create_space",
   DashboardAccount: "/account",
 };

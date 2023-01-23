@@ -9,20 +9,6 @@ import { MdAddCircle } from "react-icons/md";
 import { BASEURL, requestSetting } from "../../util/Api";
 
 const PopupEdit = ({ openModal, onCancel, onAdd, onDelete, children }) => {
-  // const handleDeleteData = async () => {
-  //   setOpenModal(false);
-
-  //   fetch(`${BASEURL}/${popup.url}/${popup.id}`, {
-  //     method: "DELETE",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //   }).then(() => {
-  //     setLastRefresh(new Date());
-  //     setData("");
-  //   });
-  // };
-
   return (
     <div
       className={`w-[360px] rounded-[4px] bg-white shadow-lg fixed left-[50%] top-[10rem] right-[50%] translate-x-[-50%] py-[1.5rem] px-[1.5rem] z-[999] transition-all ${
