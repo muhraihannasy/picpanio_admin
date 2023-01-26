@@ -203,8 +203,6 @@ const SpaceDetail = () => {
     );
   }
 
-  function getFile() {}
-
   function handleOnAddAlbum() {
     if (formAlbum.name == "" || formAlbum.description == "") {
       toast.custom(
@@ -545,14 +543,20 @@ const SpaceDetail = () => {
     getAlbums();
     getFolders();
     console.log("reresh cuyy");
+
+    return () => {};
   }, [lastRefresh]);
 
   useEffect(() => {
     getFolders();
+
+    return () => {};
   }, [lastChangedAlbum]);
 
   useEffect(() => {
     getFolders();
+
+    return () => {};
   }, [currentFolder]);
 
   useEffect(() => {

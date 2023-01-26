@@ -26,7 +26,8 @@ const menuTabs = [
   },
 ];
 
-const Profile = () => {
+const Account = () => {
+  const [innerWidth, setInnerWidth] = useState(window.innerWidth);
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [currentMenu, setCurrentMenu] = useState("");
@@ -37,24 +38,21 @@ const Profile = () => {
     passwordConfirmation: "",
   });
   const [isPaid, setIsPaid] = useState(true);
+  const [invoices, setInvoices] = useState([]);
   const navigate = useNavigate();
 
-  // function getListOrder() {
-  //   apiRequest(`${BASEURL}/space`, requestSetting("GET")).then((res) => {
-  //     if (res.message == "The token is malformed.")
-  //       navigate("/login", { replace: true });
+  function getInvoices() {
+    apiRequest(`${BASEURL}/invoice`, requestSetting("GET")).then((res) => {
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
 
-  //     res.spaces.forEach((space) => {
-  //       spacesArr.push(space.space);
-  //     });
+      setInvoices(res.invoices);
 
-  //     setSpaces(spacesArr);
-
-  //     setTimeout(() => {
-  //       setIsLoading(false);
-  //     }, 1000);
-  //   });
-  // }
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+    });
+  }
 
   function checkFormSaveProfile(data) {
     let error = false;
@@ -142,6 +140,20 @@ const Profile = () => {
     console.log(currentMenu);
   }, [currentMenu]);
 
+  useEffect(() => {
+    getInvoices();
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setInnerWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  });
+
   return (
     <div>
       {/* Header */}
@@ -155,7 +167,11 @@ const Profile = () => {
 
       <main>
         <section className="mt-[37px]">
-          <div className="container flex md:flex-row flex-col gap-[2.5rem]">
+          <div
+            className={`container flex  ${
+              innerWidth < 866 ? "flex-col" : "flex-row"
+            } gap-[2.5rem]`}
+          >
             {/* Tabs */}
             <Tabs
               menu={menuTabs}
@@ -174,8 +190,8 @@ const Profile = () => {
             {currentMenu == menuTabs[1].id && (
               <InvoiceScreen
                 isPaid={isPaid}
-                // setFormData={setFormProfile}
-                // formData={formProfile}
+                items={invoices}
+                innerWidth={innerWidth}
               />
             )}
           </div>
@@ -230,6 +246,18 @@ const ProfileScreen = ({ formData, setFormData, onSubmit }) => {
             setValue={setFormData}
           />
         </div>
+
+        <div className={styleInputGroup}>
+          <label htmlFor="email">email</label>
+          <InputComponent
+            field="email"
+            type="email"
+            require={true}
+            style="outline"
+            value={formData}
+            setValue={setFormData}
+          />
+        </div>
         <div className={styleInputGroup}>
           <label htmlFor="password">
             password{" "}
@@ -238,17 +266,6 @@ const ProfileScreen = ({ formData, setFormData, onSubmit }) => {
           <InputComponent
             field="password"
             type="password"
-            style="outline"
-            value={formData}
-            setValue={setFormData}
-          />
-        </div>
-        <div className={styleInputGroup}>
-          <label htmlFor="email">email</label>
-          <InputComponent
-            field="email"
-            type="email"
-            require={true}
             style="outline"
             value={formData}
             setValue={setFormData}
@@ -277,57 +294,107 @@ const ProfileScreen = ({ formData, setFormData, onSubmit }) => {
   );
 };
 
-const InvoiceScreen = ({ isPaid }) => {
-  const styleTable = "lg:w-full w-[40rem]";
-  const styleTrHead = "border-b-2";
-  const styleTh = "text-eighty text-[16px] text-left w-[15rem] text-eighty  ";
+const InvoiceScreen = ({ items, innerWidth }) => {
+  const styleTable = "w-full ";
+  const styleTrHead = "pb-[20px]";
+  const styleTh =
+    "text-eighty text-[16px] text-left  text-eighty whitespace-nowrap pr-3";
+  const styleTd = "whitespace-nowrap  py-[0.6rem]";
 
   return (
-    <div className="overflow-x-auto w-full mx-auto">
-      <table className={styleTable}>
-        <thead>
-          <tr className={styleTrHead}>
-            <th className={styleTh}>Invoice number</th>
-            <th className={`${styleTh}  `}>Date</th>
-            <th className={`${styleTh}  text-right `}>Amount billed</th>
-            <th className={`${styleTh}  text-center`}>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr className="pt-[1rem]">
-            <td className="text-primary font-semibold">#0001</td>
-            <td className="text-eighty ">24/07/2022</td>
-            <td className="text-eighty text-right">$9</td>
-            <td
-              className={`text-center bg-gre ${
-                isPaid ? "text-green-500" : "text-primary"
-              }`}
-            >
-              {isPaid ? "Paid" : "Unpaid"}
-            </td>
-            <td>{checkButtonIsPay(isPaid)} </td>
-          </tr>
-        </tbody>
-      </table>
+    <div className=" w-full mx-auto ">
+      {innerWidth > 866 ? (
+        <table className={styleTable}>
+          <thead className="py-[2rem]">
+            <tr className={styleTrHead}>
+              <th className={`${styleTh} w-[12rem] pb-[0.5rem]`}>
+                Invoice number
+              </th>
+              <th className={`${styleTh} w-[10rem] pb-[0.5rem] pr-5`}>Date</th>
+              <th
+                className={`${styleTh} text-right md:w-[8rem] w-[12rem] pb-[0.5rem]`}
+              >
+                Amount billed
+              </th>
+              <th className={`${styleTh} text-center pb-[0.5rem] `}>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody className="pt-[2rem]">
+            {items.map((item) => (
+              <tr key={item.id}>
+                <td className={`${styleTd} text-primary font-semibold`}>
+                  #{item.paypalOrderId ?? "none"}
+                </td>
+                <td className={`${styleTd} text-eighty pr-5 text-left`}>
+                  24/07/2022
+                </td>
+                <td className={`${styleTd} text-eighty text-right pr-3`}>
+                  ${item.billAmount}
+                </td>
+                <td
+                  className={` ${styleTd} text-center bg-gre ${
+                    item.status == "Paid" ? "text-green-500" : "text-primary"
+                  }`}
+                >
+                  {item.status}
+                </td>
+                <td>{checkButtonIsPay(item.status)} </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
+          {items.map((item) => (
+            <>
+              <CardInvoice key={item.id} item={item} />
+            </>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
 
-function checkButtonIsPay(isPaid) {
+const CardInvoice = ({ item, key }) => {
+  return (
+    <div className="bg-white shadow rounded-lg px-4 py-4 w-full" key={key}>
+      <div className="flex items-center justify-between gap-5">
+        <div className="flex items-center gap-3">
+          <h2 className="font-semibold text-primary">
+            #{item.paypalOrderId ?? "none"}
+          </h2>
+          <h2 className="text-eighty text-[0.8rem]">24/07/2022</h2>
+        </div>
+        <div>{checkStatusInvoice(item.status)}</div>
+      </div>
+      <div className="flex items-center justify-between mt-[20px]">
+        {checkButtonIsPay(item.status)}
+        <div className="font-semibold">${item.billAmount}</div>
+      </div>
+    </div>
+  );
+};
+
+function checkButtonIsPay(statusPaid) {
   let button = "";
 
-  switch (false) {
-    case true:
+  switch (statusPaid) {
+    case "Paid":
       button = (
-        <button className="bg-ten w-[86px] h-[36px] text-center text-[14px] rounded-md font-bold block text-white">
+        <button
+          className={`bg-ten w-[60px] h-[30px] text-center text-[12px] rounded-md px-2 font-bold block text-white ml-3 max-[866px]:ml-0`}
+        >
           Receipt
         </button>
       );
       break;
-    case false:
+    case "Unpaid":
       button = (
-        <button className="bg-eighty w-[86px] h-[36px] text-center text-[14px] px-8 rounded-md font-bold block text-white">
+        <button
+          className={`bg-eighty w-[60px] h-[30px] text-center text-[12px] px-3 rounded-md font-bold block text-white  ml-3 max-[866px]:ml-0`}
+        >
           Pay
         </button>
       );
@@ -340,4 +407,30 @@ function checkButtonIsPay(isPaid) {
   return button;
 }
 
-export default Profile;
+function checkStatusInvoice(statusPaid) {
+  let status = "";
+
+  switch (statusPaid) {
+    case "Paid":
+      status = (
+        <h2 className="bg-green-500 px-2 py-1 rounded-[4px] text-xs text-white">
+          Paid
+        </h2>
+      );
+      break;
+    case "Unpaid":
+      status = (
+        <h2 className="bg-secondary px-2 py-1 rounded-[4px] text-xs text-white">
+          Unpaid
+        </h2>
+      );
+
+      break;
+    default:
+      break;
+  }
+
+  return status;
+}
+
+export default Account;

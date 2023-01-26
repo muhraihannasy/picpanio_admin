@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
 
@@ -11,11 +12,10 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import Spaces from "./pages/dashboard/Spaces/Spaces";
 import SpaceDetail from "./pages/dashboard/Spaces/SpaceDetail";
 import CreateSpace from "./pages/dashboard/CreateSpace";
-import ApiIntegration from "./pages/dashboard/ApiIntegration";
-import Profile from "./pages/dashboard/account/Profile";
+import Account from "./pages/dashboard/account/Profile";
+import ApiIntegration from "./pages/dashboard/Api Integration/ApiIntegration";
 import SuccessPayment from "./pages/payment status/SuccessPayment";
 import FailedPayment from "./pages/payment status/FailedPayment";
-import { useEffect } from "react";
 
 function App() {
   const location = useLocation();
@@ -43,7 +43,7 @@ function App() {
         <Route path="/spaces/:spaceId" element={<SpaceDetail />} />
         <Route path="/integration" element={<ApiIntegration />} />
         <Route path="/create_space" element={<CreateSpace />} />
-        <Route path="/account" element={<Profile />} />
+        <Route path="/account" element={<Account />} />
 
         {/* Payment */}
         <Route path="/success" element={<SuccessPayment />} />
