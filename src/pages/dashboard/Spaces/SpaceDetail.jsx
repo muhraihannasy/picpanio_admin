@@ -134,7 +134,7 @@ const SpaceDetail = () => {
 
           const file = {
             id: res?.data[0].file,
-            location: res?.data[0].url,
+            url: res?.data[0].url,
           };
 
           setFiles((prev) => [...prev, file]);
