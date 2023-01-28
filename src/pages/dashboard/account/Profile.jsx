@@ -89,15 +89,15 @@ const Account = () => {
       if (res.message == "The token is malformed.")
         navigate("/login", { replace: true });
 
-      setFormProfile((prev) => ({
-        ...prev,
-        fullname: res?.user?.name,
-        email: res?.user?.email,
-      }));
-
-      setTimeout(() => {
+      if (res?.success) {
         setIsLoading(false);
-      }, 1000);
+
+        setFormProfile((prev) => ({
+          ...prev,
+          fullname: res?.user?.name,
+          email: res?.user?.email,
+        }));
+      }
     });
   }
 
@@ -117,16 +117,15 @@ const Account = () => {
         if (res.message == "The token is malformed.")
           navigate("/login", { replace: true });
 
-        if (res.success) {
+        if (res?.success) {
+          setIsLoading(false);
+
           toast.custom(
             <Alert type="success" message="Success Changes Account" />
           );
 
           setLastRefresh(new Date());
         }
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 1000);
       }
     );
   }

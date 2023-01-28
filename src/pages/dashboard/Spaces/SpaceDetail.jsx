@@ -170,6 +170,9 @@ const SpaceDetail = () => {
         navigate("/login", { replace: true });
 
       if (res.statusCode == 500) navigate("/spaces", { replace: true });
+
+      setCurrentAlbum(res.album[0].id);
+      console.log(res.album[0].id);
       setAlbums(res.album);
     });
   }
@@ -456,6 +459,8 @@ const SpaceDetail = () => {
   }
 
   function changesPath(newPath) {
+    setFolders([]);
+    setFiles([]);
     const pathString = String(path);
 
     if (path !== "root") {
@@ -494,6 +499,8 @@ const SpaceDetail = () => {
   }
 
   function backToTopPath(currentPath) {
+    setFolders([]);
+    setFiles([]);
     const pathArr = currentPath.split("/");
     pathArr.pop();
     let pathJoin = pathArr.join("/");
@@ -527,7 +534,7 @@ const SpaceDetail = () => {
 
   useEffect(() => {
     getSpaces();
-    getAlbums();
+    (async () => getAlbums())();
   }, [lastRefresh]);
 
   useEffect(() => {
@@ -542,7 +549,7 @@ const SpaceDetail = () => {
 
   useEffect(() => {
     getFolders();
-  }, [currentFolder]);
+  }, [currentFolder, currentAlbum]);
 
   useEffect(() => {
     const closeModal = (e) => {
@@ -884,20 +891,18 @@ const SpaceDetail = () => {
                   </div>
                 )}
 
-                {!isLoading && (
-                  <ListImageComponent
-                    listFolders={folders}
-                    listFiles={files}
-                    setCurrentFolder={setCurrentFolder}
-                    setCurrentFile={setCurrentFile}
-                    setOpenModal={setOpenModal}
-                    setFormFolder={setFormFolder}
-                    setFormFile={setFormFile}
-                    changesPath={changesPath}
-                    backToTopPath={backToTopPath}
-                    path={path}
-                  />
-                )}
+                <ListImageComponent
+                  listFolders={folders}
+                  listFiles={files}
+                  setCurrentFolder={setCurrentFolder}
+                  setCurrentFile={setCurrentFile}
+                  setOpenModal={setOpenModal}
+                  setFormFolder={setFormFolder}
+                  setFormFile={setFormFile}
+                  changesPath={changesPath}
+                  backToTopPath={backToTopPath}
+                  path={path}
+                />
                 {currentAlbum == "" && (
                   <h2 className="text-center pt-[1rem] translate-y-[-34rem]">
                     No Album Selected{" "}

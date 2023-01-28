@@ -22,15 +22,16 @@ const ListImageComponent = ({
   changesPath,
   backToTopPath,
 }) => {
-  console.log(listFiles);
+  let currentPath = path;
   return (
     <ul className="mt-[1.5rem] h-[39.7rem] overflow-y-scroll list-image">
-      {path !== "root" && (
+      {console.log(currentPath, "THIS IS CURRENT PATH YA GeS YA")}
+      {currentPath !== "root" && (
         <li className="px-6 py-2 cursor-pointer border-b">
           <div
             className="flex items-center gap-4 w-full"
             onClick={() => {
-              backToTopPath(path);
+              backToTopPath(currentPath);
             }}
           >
             <BsFolder2Open className="text-primary text-[1.7rem]" />
