@@ -107,7 +107,7 @@ const ListImageComponent = ({
                 }}
               >
                 <img src={image} alt="" className="w-[30px] item-image" />
-                <h3 className="text-[12px] item-image">{item.key}</h3>
+                <h3 className="text-[12px] item-image">{item.id}</h3>
               </div>
 
               <div className="flex items-center gap-[2rem] item-image">

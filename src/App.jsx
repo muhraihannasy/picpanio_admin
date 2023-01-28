@@ -16,6 +16,7 @@ import Account from "./pages/dashboard/account/Profile";
 import ApiIntegration from "./pages/dashboard/Api Integration/ApiIntegration";
 import SuccessPayment from "./pages/payment status/SuccessPayment";
 import FailedPayment from "./pages/payment status/FailedPayment";
+import Users from "./pages/dashboard/Users/Users";
 
 function App() {
   const location = useLocation();
@@ -44,6 +45,7 @@ function App() {
         <Route path="/integration" element={<ApiIntegration />} />
         <Route path="/create_space" element={<CreateSpace />} />
         <Route path="/account" element={<Account />} />
+        <Route path="/users" element={<Users />} />
 
         {/* Payment */}
         <Route path="/success" element={<SuccessPayment />} />

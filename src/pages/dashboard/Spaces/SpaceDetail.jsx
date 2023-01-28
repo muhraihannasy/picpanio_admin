@@ -127,14 +127,17 @@ const SpaceDetail = () => {
           navigate("/login", { replace: true });
 
         if (res.success) {
+          setIsUploading(false);
           toast.custom(
             <Alert type="success" message="Success uploaded files" />
           );
-          setLastRefresh(new Date());
 
-          setTimeout(() => {
-            setIsUploading(false);
-          }, 1000);
+          const file = {
+            id: res?.data[0].file,
+            location: res?.data[0].url,
+          };
+
+          setFiles((prev) => [...prev, file]);
         }
       })
       .catch((error) => console.log("error", error));
@@ -152,9 +155,9 @@ const SpaceDetail = () => {
       setFormAlbum((prev) => ({ ...prev, spaceId: firstSpaceId }));
       setFormFolder((prev) => ({ ...prev, spaceId: firstSpaceId }));
 
-      setTimeout(() => {
+      if (res.success) {
         setIsLoading(false);
-      }, 1000);
+      }
     });
   }
 
@@ -167,18 +170,15 @@ const SpaceDetail = () => {
         navigate("/login", { replace: true });
 
       if (res.statusCode == 500) navigate("/spaces", { replace: true });
-
-      // console.log(res, "response");
-
-      const firstAlbumId = res.album[0]?.id;
-
       setAlbums(res.album);
-      setCurrentAlbum(firstAlbumId);
-      setFormFolder((prev) => ({ ...prev, albumId: firstAlbumId }));
     });
   }
 
   function getFolders() {
+    setFolders([]);
+    setFiles([]);
+    setIsLoading(true);
+
     const data = {
       spaceId: spaceId,
       albumId: currentAlbum,
@@ -196,9 +196,12 @@ const SpaceDetail = () => {
           return;
         }
 
+        if (res.success) {
+          setIsLoading(false);
+        }
+
         setFolders(res?.folderList);
         setFiles(res?.fileList);
-        console.log("data", res);
       }
     );
   }
@@ -225,15 +228,13 @@ const SpaceDetail = () => {
         navigate("/login", { replace: true });
 
       if (res.success) {
+        setIsLoading(false);
+
         toast.custom(<Alert type="success" message="Success Create Album" />);
 
         setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
         setLastRefresh(new Date());
       }
-
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 1000);
     });
   }
 
@@ -259,15 +260,13 @@ const SpaceDetail = () => {
         navigate("/login", { replace: true });
 
       if (res.success) {
+        setIsLoading(false);
+
         toast.custom(<Alert type="success" message="Success Change Album" />);
 
         setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
         setLastRefresh(new Date());
       }
-
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 1000);
     });
   }
 
@@ -312,7 +311,7 @@ const SpaceDetail = () => {
       name: formFolder.name,
     };
 
-    setIsLoading(true);
+    // setIsLoading(true);
     setOpenModal((prev) => ({ ...prev, addFolder: false }));
     apiRequest(`${BASEURL}/folder`, requestSetting("POST", data)).then(
       (res) => {
@@ -320,17 +319,15 @@ const SpaceDetail = () => {
           navigate("/login", { replace: true });
 
         if (res.success) {
+          // setIsLoading(false);
+
           toast.custom(
             <Alert type="success" message="Success Create Folder" />
           );
 
           setFormFolder((prev) => ({ ...prev, name: "" }));
-          setLastRefresh(new Date());
+          setFolders((prev) => [...prev, res.folder]);
         }
-
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 1000);
       }
     );
   }
@@ -356,6 +353,8 @@ const SpaceDetail = () => {
           navigate("/login", { replace: true });
 
         if (res.success) {
+          setIsLoading(false);
+
           toast.custom(
             <Alert type="success" message="Success Change Folder" />
           );
@@ -363,10 +362,6 @@ const SpaceDetail = () => {
           setFormFolder((prev) => ({ ...prev, name: "" }));
           setLastRefresh(new Date());
         }
-
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 1000);
       }
     );
   }
@@ -379,7 +374,6 @@ const SpaceDetail = () => {
       path: path,
     };
 
-    setIsLoading(true);
     setOpenModal((prev) => ({
       ...prev,
       confirmDeleteFolder: false,
@@ -396,12 +390,7 @@ const SpaceDetail = () => {
           );
 
           setFormFolder((prev) => ({ ...prev, name: "" }));
-          setLastRefresh(new Date());
         }
-
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 1000);
       }
     );
   }
@@ -425,15 +414,13 @@ const SpaceDetail = () => {
           navigate("/login", { replace: true });
 
         if (res.success) {
+          setIsLoading(false);
+
           toast.custom(<Alert type="success" message="Success Delete File" />);
 
           setFormFile((prev) => ({ ...prev, filename: "" }));
           setLastRefresh(new Date());
         }
-
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 1000);
       }
     );
   }
@@ -541,22 +528,20 @@ const SpaceDetail = () => {
   useEffect(() => {
     getSpaces();
     getAlbums();
-    getFolders();
-    console.log("reresh cuyy");
-
-    return () => {};
   }, [lastRefresh]);
 
   useEffect(() => {
-    getFolders();
+    setTimeout(() => {
+      console.log(albums, "albumsssss");
+    }, 1000);
+  }, []);
 
-    return () => {};
+  useEffect(() => {
+    getFolders();
   }, [lastChangedAlbum]);
 
   useEffect(() => {
     getFolders();
-
-    return () => {};
   }, [currentFolder]);
 
   useEffect(() => {
@@ -581,8 +566,6 @@ const SpaceDetail = () => {
 
     return () => window.removeEventListener("resize", handleResize);
   });
-
-  console.log(path);
 
   return (
     <div>

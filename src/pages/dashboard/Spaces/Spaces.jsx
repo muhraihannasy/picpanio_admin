@@ -23,9 +23,9 @@ const Spaces = () => {
       if (res.message == "The token is malformed.")
         navigate("/login", { replace: true });
 
-      setTimeout(() => {
+      if (res.success) {
         setIsLoading(false);
-      }, 1000);
+      }
     });
   }
 
@@ -42,9 +42,9 @@ const Spaces = () => {
 
       setSpaces(spacesArr);
 
-      setTimeout(() => {
+      if (res.success) {
         setIsLoading(false);
-      }, 1000);
+      }
     });
   }
 

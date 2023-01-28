@@ -1,3 +1,8 @@
+import { useEffect, useState } from "react";
+// Util
+import { BASEURL, apiRequest, requestSetting } from "../../../util/Api";
+
+// Icon
 import { BsArrowRepeat } from "react-icons/bs";
 
 // Component
@@ -8,7 +13,22 @@ import postmanBtn from "../../../assets/images/icon/postman_btn.png";
 import apiaryBtn from "../../../assets/images/icon/apiary_btn.png";
 
 const ApiIntegration = () => {
-  const styleParagraf = "font-regular text-[14px] text-eighty";
+  const [apiToken, setApiToken] = useState("");
+  const styleParagraf = "font-regular text-[14px] text-eighty w-[90%]";
+
+  function generateApiToken() {
+    apiRequest(
+      `${BASEURL}/account/generatetoken`,
+      requestSetting("POST", {})
+    ).then((res) => {
+      if (res?.success) {
+        setApiToken(res?.apiToken);
+      }
+    });
+  }
+
+  useEffect(() => {}, [apiToken]);
+
   return (
     <>
       {/* Header */}
@@ -49,10 +69,13 @@ const ApiIntegration = () => {
                 type="text"
                 className="w-full bg-ninety border border-seventy rounded-[8px] h-[52px] focus:outline-none text-center font-bold text-eighty text-[18px]"
                 readOnly
-                value={"sdsdsdsd"}
+                value={apiToken}
               />
 
-              <div className="flex items-center justify-center gap-2 mt-[13px] cursor-pointer">
+              <div
+                className="flex items-center justify-center gap-2 mt-[13px] cursor-pointer"
+                onClick={generateApiToken}
+              >
                 <BsArrowRepeat className="text-[20px] text-eighty" />
                 <p className="text-ten text-[14px]">Regenerate Token</p>
               </div>

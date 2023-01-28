@@ -69,17 +69,6 @@ const HeaderDashboardComponent = () => {
             </li>
             <li>
               <Link
-                to={Route.DashboardUsers}
-                className={`
-                ${location.pathname == Route.DashboardUsers && "font-bold"}
-                ${location.pathname == Route.DashboardUsers && "font-bold"}
-                `}
-              >
-                Users
-              </Link>
-            </li>
-            <li>
-              <Link
                 to={Route.DashboardIntegration}
                 className={`${
                   location.pathname == Route.DashboardIntegration && "font-bold"
