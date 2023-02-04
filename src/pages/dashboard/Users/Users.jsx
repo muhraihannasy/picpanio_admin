@@ -15,81 +15,126 @@ import apiaryBtn from "../../../assets/images/icon/apiary_btn.png";
 import InputComponent from "../../../components/InputComponent";
 import ButtonComponent from "../../../components/ButtonComponent";
 import { IoIosCloseCircle } from "react-icons/io";
+import { Toaster, toast } from "react-hot-toast";
+import Alert from "../../../components/alert/alert";
+import { useParams } from "react-router-dom";
+import Loading from "../../../components/loading";
+import { GoTrashcan } from "react-icons/go";
 
 const Users = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     email: "",
     role: "read",
-    space: [],
   });
-  const styleParagraf = "font-regular text-[14px] text-eighty w-[90%]";
-  const styleTable = "w-full ";
-  const styleTrHead = "pb-[20px]";
-  const styleTh =
-    "text-eighty text-[16px] text-left  text-eighty whitespace-nowrap pr-3";
-  const styleTd = "whitespace-nowrap  py-[0.6rem]";
-  const btnRole = "w-full h-[37px] text-center text-white px-4  transition-all";
+  const [invitations, setInvitations] = useState([]);
+  const { spaceId } = useParams();
+  const btnRole = "w-full h-[46px] text-center text-white px-4 transition-all";
 
   function handleSubmit(e) {
     e.preventDefault();
+
+    if (formData.email == "") {
+      toast.custom(<Alert type="error" message="Email required " />);
+      return;
+    }
+
+    const data = {
+      spaceId,
+      ...formData,
+    };
+
+    setIsLoading(true);
+
+    apiRequest(`${BASEURL}/invitation`, requestSetting("POST", data)).then(
+      (res) => {
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
+
+        if (res.success) {
+          toast.custom(<Alert type="success" message="Successfuly Invited" />);
+          setInvitations((prev) => [
+            ...prev,
+            {
+              email: data.email,
+              role: data.role,
+            },
+          ]);
+          setIsLoading(false);
+        }
+
+        if (res.error) {
+          toast.custom(<Alert type="error" message={res.error} />);
+          setIsLoading(false);
+        }
+      }
+    );
   }
 
-  useEffect(() => {}, []);
+  function getInvitationBySpace() {
+    apiRequest(
+      `${BASEURL}/invitation?spaceId=${spaceId}`,
+      requestSetting("GET")
+    ).then((res) => {
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
+
+      if (res !== []) {
+        setIsLoading(false);
+        setInvitations(res);
+      }
+    });
+  }
+
+  function handleCancelInvitation(id) {
+    setInvitations([]);
+    return;
+    const data = {
+      spaceId: spaceId,
+      userId: id,
+    };
+
+    apiRequest(`${BASEURL}/space/user`, requestSetting("DELETE", data)).then(
+      (res) => {
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
+
+        if (res.success) {
+          toast.custom(<Alert type="success" message="Successfuly Canceled" />);
+          setIsLoading(false);
+        }
+
+        if (res.error) {
+          toast.custom(<Alert type="error" message={res.error} />);
+          setIsLoading(false);
+        }
+      }
+    );
+  }
+
+  useEffect(() => {
+    getInvitationBySpace();
+  }, []);
 
   return (
     <>
       {/* Header */}
       <HeaderDashboardComponent />
 
+      {/* Toast */}
+      <Toaster />
+
+      {/* Loading */}
+      {isLoading && <Loading />}
+
       <main>
         <section>
-          {/* <div className="container pt-[29px] grid md:grid-cols-2 gap-5 grid-cols-1">
-            <div>
-              <h2 className="text-primary font-bold mb-[25px]">
-                API Documentation
-              </h2>
-              <p className={styleParagraf}>
-                You can integrate Picpan with your apps with our API, please
-                read API documentation below.
-              </p>
-              <div className="flex items-center my-[15px] gap-5">
-                <img
-                  src={postmanBtn}
-                  alt=""
-                  className="w-[136px] cursor-pointer"
-                />
-                <img
-                  src={apiaryBtn}
-                  alt=""
-                  className="w-[112px] cursor-pointer"
-                />
-              </div>
-              <p className={styleParagraf}>
-                Use the API Token for authentication every you make request, we
-                suggest for re-generate your API Token periodically for security
-                reason
-              </p>
-            </div>
-            <div>
-              <h2 className="text-primary font-bold mb-[25px]">API Token</h2>
-              <input
-                type="text"
-                className="w-full bg-ninety border border-seventy rounded-[8px] h-[52px] focus:outline-none text-center font-bold text-eighty text-[18px]"
-                readOnly
-              />
-
-              <div className="flex items-center justify-center gap-2 mt-[13px] cursor-pointer">
-                <BsArrowRepeat className="text-[20px] text-eighty" />
-                <p className="text-ten text-[14px]">Regenerate Token</p>
-              </div>
-            </div>
-          </div> */}
           <div className="container">
             <h2 className="text-primary text-[20px] font-bold mt-[25px] mb-[37px] ">
               Users
             </h2>
 
-            <div className="flex gap-5">
+            <div className="flex gap-12">
               <div className="w-[400px] bg-ninety shadow rounded-[4px] px-5 py-6">
                 <form onSubmit={handleSubmit}>
                   <div>
@@ -103,7 +148,7 @@ const Users = () => {
                     />
                   </div>
 
-                  <div className="my-[20px]">
+                  <div className="mt-[20px]">
                     <label htmlFor="*" className="block mb-[14px]">
                       Access role
                     </label>
@@ -132,96 +177,185 @@ const Users = () => {
                       </button>
                     </div>
                   </div>
-                  <div className="my-[20px]">
-                    <label htmlFor="*" className="block mb-[14px]">
-                      Space
-                    </label>
-                    <ul className="flex flex-wrap bg-white rounded-[4px] h-[102px] overflow-y-auto px-4 py-4 gap-2 ">
-                      <li className="rounded-[4px] bg-fourty  h-max px-4 py-1   flex items-center justify-between gap-2 text-[14px] flex-1">
-                        Novatama SG
-                        <IoIosCloseCircle className="text-xl" />
-                      </li>
-                      <li className="rounded-[4px] bg-fourty  h-max px-4 py-1   flex items-center justify-between gap-2 text-[14px] flex-1">
-                        Novatama US
-                        <IoIosCloseCircle className="text-xl" />
-                      </li>
-                      <li className="rounded-[4px] bg-fourty  h-max px-4 py-1   flex items-center justify-between gap-2 text-[14px] flex-1">
-                        NSTEK US
-                        <IoIosCloseCircle className="text-xl" />
-                      </li>
-                      <li className="rounded-[4px] bg-fourty  h-max px-4 py-1   flex items-center justify-between gap-2 text-[14px] flex-1">
-                        NSTEK AFRICE
-                        <IoIosCloseCircle className="text-xl" />
-                      </li>
-                      <li className="rounded-[4px] bg-fourty  h-max px-4 py-1   flex items-center justify-between gap-2 text-[14px] flex-1">
-                        NSTEK AFRICE
-                        <IoIosCloseCircle className="text-xl" />
-                      </li>
-                      <li className="rounded-[4px] bg-fourty  h-max px-4 py-1   flex items-center justify-between gap-2 text-[14px] flex-1">
-                        NSTEK AFRICE
-                        <IoIosCloseCircle className="text-xl" />
-                      </li>
-                    </ul>
-                  </div>
-
                   <button
                     type="submit"
-                    className="bg-secondary text-white w-full h-[42px] text-center px-8 rounded-md font-bold block mt-[5rem] mb-[2rem]"
+                    className="bg-secondary text-white w-full h-[42px] text-center px-8 rounded-md font-bold block mt-[2rem] mb-[2rem]"
                   >
                     Invite User
                   </button>
                 </form>
               </div>
-              <div>
-                <table className={styleTable}>
-                  <thead className="py-[2rem]">
-                    <tr className={styleTrHead}>
-                      <th className={`${styleTh} w-[12rem] pb-[0.5rem]`}>
-                        Invoice number
-                      </th>
-                      <th className={`${styleTh} w-[10rem] pb-[0.5rem] pr-5`}>
-                        Date
-                      </th>
-                      <th
-                        className={`${styleTh} text-right md:w-[8rem] w-[12rem] pb-[0.5rem]`}
-                      >
-                        Amount billed
-                      </th>
-                      <th className={`${styleTh} text-center pb-[0.5rem] `}>
-                        Status
-                      </th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody className="pt-[2rem]">
-                    <tr>
-                      <td className={`${styleTd} text-primary font-semibold`}>
-                        #123
-                      </td>
-                      <td className={`${styleTd} text-eighty pr-5 text-left`}>
-                        24/07/2022
-                      </td>
-                      <td className={`${styleTd} text-eighty text-right pr-3`}>
-                        $123
-                      </td>
-                      <td
-                        className={` ${styleTd} text-center bg-gre ${
-                          true == "Paid" ? "text-green-500" : "text-primary"
-                        }`}
-                      >
-                        Invited
-                      </td>
-                      <td> </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div className="flex flex-col gap-10">
+                {invitations.length > 0 && (
+                  <InvitationTable
+                    items={invitations}
+                    onCancel={(id) => handleCancelInvitation(id)}
+                  />
+                )}
+                <MemberTable
+                  items={invitations}
+                  onCancel={(id) => handleCancelInvitation(id)}
+                />
               </div>
             </div>
           </div>
         </section>
+
+        <InvoiceScreen />
       </main>
     </>
   );
 };
 
+const InvoiceScreen = ({ items, innerWidth }) => {
+  const styleTable = "w-full ";
+  const styleTrHead = "pb-[20px]";
+  const styleTh =
+    "text-eighty text-[16px] text-left  text-eighty whitespace-nowrap pr-3";
+  const styleTd = "whitespace-nowrap  py-[0.6rem]";
+
+  return (
+    <div className=" w-full mx-auto ">
+      {innerWidth > 866 && (
+        <table className={styleTable}>
+          <thead className="py-[2rem]">
+            <tr className={styleTrHead}>
+              <th className={`${styleTh} w-[12rem] pb-[0.5rem]`}>
+                Invoice number
+              </th>
+              <th className={`${styleTh} w-[10rem] pb-[0.5rem] pr-5`}>Date</th>
+              <th
+                className={`${styleTh} text-right md:w-[8rem] w-[12rem] pb-[0.5rem]`}
+              >
+                Amount billed
+              </th>
+              <th className={`${styleTh} text-center pb-[0.5rem] `}>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody className="pt-[2rem]">
+            <tr>
+              <td className={`${styleTd} text-primary font-semibold`}>#</td>
+              <td className={`${styleTd} text-eighty pr-5 text-left`}>
+                24/07/2022
+              </td>
+              <td className={`${styleTd} text-eighty text-right pr-3`}>$</td>
+              <td className={` ${styleTd} text-center bg-gre `}></td>
+              {/* <td>{checkButtonIsPay(item.status)} </td> */}
+            </tr>
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+};
+
+const InvitationTable = ({ items, onCancel }) => {
+  const styleParagraf = "font-regular text-[14px] text-eighty w-[90%]";
+  const styleTable = "w-full ";
+  const styleTrHead = "pb-[20px]";
+  const styleTh =
+    "text-eighty text-[16px] text-left  text-eighty whitespace-nowrap pr-3";
+  const styleTd = "whitespace-nowrap  py-[0.6rem]";
+
+  return (
+    <div>
+      <h2 className="text-primary text-[18px] font-bold mb-[1.2rem]">
+        Pending invitation
+      </h2>
+      <table className={styleTable}>
+        <thead className="py-[2rem]">
+          <tr className={styleTrHead}>
+            <th className={`${styleTh} w-[24rem] pb-[0.5rem]`}>Email</th>
+            <th className={`${styleTh} w-[12rem] pb-[0.5rem] pr-5`}>Role</th>
+
+            <th className="w-[12rem]"></th>
+          </tr>
+        </thead>
+        <tbody className="pt-[2rem]">
+          {items &&
+            items.map((item, index) => (
+              <tr key={index}>
+                <td className={`${styleTd} text-eighty `}>{item.email}</td>
+                <td className={`${styleTd} text-eighty pr-5 text-left`}>
+                  {item.role}
+                </td>
+
+                <td className="text-primary">
+                  {" "}
+                  <button onClick={() => onCancel(item.id)}>
+                    Cancel Invitation
+                  </button>
+                </td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const MemberTable = ({ items, onCancel }) => {
+  const styleParagraf = "font-regular text-[14px] text-eighty w-[90%]";
+  const styleTable = "w-full relative";
+  const styleTrHead = "pb-[20px]";
+  const styleTh =
+    "text-eighty text-[16px] text-left  text-eighty md:whitespace-normal whitespace-nowrap pr-3";
+  const styleTd = "md:whitespace-normal whitespace-nowrap  py-[0.6rem]";
+
+  return (
+    <div>
+      <h2 className="text-primary text-[18px] font-bold mb-[1.2rem]">
+        Members
+      </h2>
+      <table className={styleTable}>
+        <thead className="py-[2rem]">
+          <tr className={styleTrHead}>
+            <th className={`${styleTh} w-[8rem] pb-[0.5rem]`}>Name</th>
+            <th className={`${styleTh} w-[16rem] pb-[0.5rem]`}>Email</th>
+            <th className={`${styleTh} w-[6rem] pb-[0.5rem] pr-5`}>Role</th>
+            <th className={`${styleTh} w-[6rem] pb-[0.5rem] pr-5`}>Status</th>
+
+            <th className="w-[12rem]"></th>
+          </tr>
+          <div className="bg-seventy absolute h-[2px] w-[80%] mb-2 mt-1"></div>
+        </thead>
+        <tbody className="pt-[2rem]">
+          {items &&
+            items.map((item, index) => (
+              <tr key={index}>
+                <td className={`${styleTd} text-eighty`}>Muhammad</td>
+                <td className={`${styleTd} text-eighty `}>{item.email}</td>
+                <td className={`${styleTd} text-eighty pr-5 text-left`}>
+                  {item.role}
+                </td>
+                <td
+                  className={`${styleTd}  pr-5 text-left ${
+                    item.status == "Active" ? "text-ten" : "text-primary"
+                  }`}
+                >
+                  Active
+                </td>
+
+                <td className="text-primary">
+                  {" "}
+                  <button
+                  // onClick={() => {
+                  //   setOpenModal((prev) => ({
+                  //     ...prev,
+                  //     confirmDeleteFile: true,
+                  //   }));
+                  //   setFormFile((prev) => ({ ...prev, filename: item.id }));
+                  // }}
+                  >
+                    <GoTrashcan className="text-third text-[1.45rem]" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 export default Users;

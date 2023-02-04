@@ -7,6 +7,8 @@ import CopyText from "../util/CopyText";
 import images from "../assets/images/images-dummy2.png";
 import { IoCopySharp } from "react-icons/io5";
 import { BASEURL, apiRequest, requestSetting } from "../util/Api";
+import { toast } from "react-hot-toast";
+import Alert from "./alert/alert";
 
 const ModalImageDetailComponent = ({
   currentFile,
@@ -40,9 +42,11 @@ const ModalImageDetailComponent = ({
       .then((response) => response.text())
       .then((result) => console.log(result))
       .catch((error) => console.log("error", error));
-    // apiRequest(imageUrl, requestSetting("GET")).then((res) => {
-    //   console.log(res);
-    // });
+  }
+
+  function handleCopyText(url) {
+    CopyText(url);
+    toast.custom(<Alert type="success" message="Success Copied URL" />);
   }
 
   useEffect(() => {
@@ -69,7 +73,10 @@ const ModalImageDetailComponent = ({
           </h2>
           <p className="text-[10px] text-eighty">{imageUrl}</p>
 
-          <p className="text-primary text-[10px] cursor-pointer mt-[0.5rem]">
+          <p
+            className="text-primary text-[10px] cursor-pointer mt-[0.5rem]"
+            onClick={() => handleCopyText(imageUrl)}
+          >
             Copy URL
           </p>
 
@@ -331,7 +338,7 @@ const ModalImageDetailComponent = ({
 
       <button
         className="flex items-center justify-center gap-2 bg-eighty text-white font-bold w-[96px] h-[36px] rounded-[8px] ml-auto mt-[1.5rem]"
-        onClick={() => CopyText(copyUrl == "?" ? imageUrl : copyUrl)}
+        onClick={() => handleCopyText(copyUrl == "?" ? imageUrl : copyUrl)}
       >
         Copy
         <IoCopySharp />

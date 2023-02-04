@@ -17,6 +17,7 @@ import ApiIntegration from "./pages/dashboard/Api Integration/ApiIntegration";
 import SuccessPayment from "./pages/payment status/SuccessPayment";
 import FailedPayment from "./pages/payment status/FailedPayment";
 import Users from "./pages/dashboard/Users/Users";
+import Invitation from "./pages/dashboard/Invitation";
 
 function App() {
   const location = useLocation();
@@ -42,10 +43,14 @@ function App() {
         {/* Dashboard */}
         <Route path="/spaces" element={<Spaces />} />
         <Route path="/spaces/:spaceId" element={<SpaceDetail />} />
+        <Route path="/spaces/:spaceId/members" element={<Users />} />
         <Route path="/integration" element={<ApiIntegration />} />
         <Route path="/create_space" element={<CreateSpace />} />
         <Route path="/account" element={<Account />} />
-        <Route path="/users" element={<Users />} />
+        <Route
+          path="/invitation/accept/:invitationId"
+          element={<Invitation />}
+        />
 
         {/* Payment */}
         <Route path="/success" element={<SuccessPayment />} />

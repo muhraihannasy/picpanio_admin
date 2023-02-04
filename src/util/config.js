@@ -1,3 +1,6 @@
+export const MODE = "Development";
+// export const MODE = "Production";
+
 export function formatBytes(bytes, decimals = 2) {
   if (!+bytes) return "0 Bytes";
 

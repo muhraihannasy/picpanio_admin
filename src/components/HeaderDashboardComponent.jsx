@@ -106,13 +106,6 @@ const HeaderDashboardComponent = () => {
               </ul>
             </div>
           </button>
-
-          <PlanComponent
-            text="Premium"
-            bg="bg-secondary"
-            color="white"
-            styleFont="bold"
-          />
         </div>
 
         {/* Mobile Button Menu */}

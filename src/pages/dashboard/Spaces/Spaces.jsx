@@ -137,7 +137,7 @@ const SpaceItems = ({ items, navigate }) => {
       </Link>
       <div className="grid md:grid-cols-2 grid-cols-1 gap-[1rem]">
         {items.map((item) => {
-          const { id, name, region, slug, status } = item;
+          const { id, name, region, slug, status, plan } = item;
           const url = `${region}.picpan.io/${slug}`;
           return (
             <div
@@ -153,12 +153,25 @@ const SpaceItems = ({ items, navigate }) => {
                   {status}
                 </p>
               </div>
-              <p className="text-eighty text-[14px]">{url}</p>
-              <p className="text-[12px] text-eighty">
-                {region == "ap1" && "Asia Pacific (Singapore)"}
-                {region == "us1" && "Asia Pacific (Dallas, TX)"}
-                {region == "eu1" && "Europa (Germany)"}
-              </p>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-eighty text-[14px]">{url}</p>
+                  <p className="text-[12px] text-eighty">
+                    {region == "ap1" && "Asia Pacific (Singapore)"}
+                    {region == "us1" && "Asia Pacific (Dallas, TX)"}
+                    {region == "eu1" && "Europa (Germany)"}
+                  </p>
+                </div>
+
+                <p
+                  className={`text-[14px] flex items-center font-regular text-14 px-3 h-[30px] rounded-[10px] text-eighty ${planColor(
+                    plan
+                  )} `}
+                >
+                  {plan}
+                </p>
+              </div>
             </div>
           );
         })}
@@ -178,6 +191,23 @@ function statusColor(status) {
       break;
     default:
       color = "text-eighty";
+      break;
+  }
+
+  return color;
+}
+
+function planColor(plan) {
+  let color = "";
+  switch (plan) {
+    case "Free":
+      color = "bg-seventy";
+      break;
+    case "Premium":
+      color = "bg-sixty";
+      break;
+    default:
+      color = "bg-primary";
       break;
   }
 

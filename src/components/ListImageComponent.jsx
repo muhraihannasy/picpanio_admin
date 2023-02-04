@@ -1,4 +1,10 @@
-import { Link } from "react-router-dom";
+import { toast } from "react-hot-toast";
+
+// Util
+import CopyText from "../util/CopyText";
+
+// Component
+import Alert from "./alert/alert";
 
 // Icon
 import { BsFolder2Open } from "react-icons/bs";
@@ -8,7 +14,6 @@ import { GoTrashcan } from "react-icons/go";
 
 // Images
 import image from "../assets/images/images.png";
-import CopyText from "../util/CopyText";
 
 const ListImageComponent = ({
   listFolders,
@@ -23,6 +28,11 @@ const ListImageComponent = ({
   backToTopPath,
 }) => {
   let currentPath = path;
+
+  function handleCopyText(url) {
+    CopyText(url);
+    toast.custom(<Alert type="success" message="Success Copied URL" />);
+  }
   return (
     <ul className="mt-[1.5rem] h-[39.7rem] overflow-y-scroll list-image">
       {console.log(currentPath, "THIS IS CURRENT PATH YA GeS YA")}
@@ -125,7 +135,7 @@ const ListImageComponent = ({
                     View URL
                   </a>
 
-                  <button onClick={() => CopyText(item.url)}>
+                  <button onClick={() => handleCopyText(item.url)}>
                     <IoCopyOutline />
                   </button>
                 </div>

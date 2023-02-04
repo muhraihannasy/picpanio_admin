@@ -10,19 +10,22 @@ import Alert from "../../components/alert/alert";
 import HeaderDashboardComponent from "../../components/HeaderDashboardComponent";
 import Loading from "../../components/loading";
 import PopupPay from "../../components/popup/PopupPay";
+import { useEffect } from "react";
+import { MODE } from "../../util/config";
 
 const CreateSpace = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [openModalPay, setOpenModalPay] = useState(false);
   const [terms, setTerms] = useState(false);
+  const [address, setAddress] = useState("");
 
   const [space, setSpace] = useState({
     name: "",
     slug: "",
     description: "",
-    plan: "",
-    region: "",
-    billPeriod: "",
+    plan: "Premium",
+    region: "ap1",
+    billPeriod: "Monthly",
   });
   const [paypalLink, setPaypalLink] = useState("");
   const btnCreateSpaceRef = useRef();
@@ -55,43 +58,49 @@ const CreateSpace = () => {
 
     apiRequest(`${BASEURL}/space/order`, requestSetting("POST", space)).then(
       (res) => {
-        "";
+        if (res.error) {
+          toast.custom(<Alert type="error" message={res.error} />);
+        }
         if (res.success) {
           toast.custom(
             <Alert type="success" message="Successfuly Created Space" />
           );
-          setOpenModalPay(true);
-          setPaypalLink(res?.paypal?.links[1]?.href);
-          console.log(res?.paypal?.links[1]?.href);
         }
 
-        setOpenModalPay(true);
+        if (res.success && data.plan !== "Free") {
+          setOpenModalPay(true);
+          setPaypalLink(res?.paypal?.links[1]?.href);
+        }
       }
     );
-
-    // fetch(`${BASEURL}/space/order`, requestSetting("POST", space))
-    //   .then((res) => res.json())
-    //   .then((res) => {
-    //     setIsLoading(false);
-    //     if (res.error) {
-    //       toast.custom(<Alert type="error" message={res.error} />);
-    //       return;
-    //     }
-
-    //     if (res.success) {
-    //       toast.custom(
-    //         <Alert type="success" message="Successfuly Created Space" />
-    //       );
-    //     }
-
-    //     setTimeout(() => {
-    //       navigate(Route.DashboardSpaces, { replace: true });
-    //     }, 1000);
-    //   })
-    //   .catch((e) => {
-    //     console.log(e);
-    //   });
   }
+
+  function checkSpaceAddress() {
+    let address = "";
+    switch (space.region) {
+      case "ap1":
+        address = "ap1.picpan.";
+        break;
+      case "us1":
+        address = "us1.picpan.";
+        break;
+      case "eu1":
+        address = "eu1.picpan.";
+        break;
+      default:
+        break;
+    }
+
+    if (MODE == "Development") address += "dev";
+    if (MODE == "Production") address += "io";
+
+    setAddress(address);
+  }
+
+  useEffect(() => {
+    checkSpaceAddress();
+    console.log(address);
+  }, [space, address]);
   return (
     <>
       {/* Toast */}
@@ -114,7 +123,7 @@ const CreateSpace = () => {
             <SpaceInformation space={space} setSpace={setSpace} />
             <ChoosePlan space={space} setSpace={setSpace} />
             <ChooseRegion space={space} setSpace={setSpace} />
-            <SettingSpace space={space} setSpace={setSpace} />
+            <SettingSpace space={space} setSpace={setSpace} address={address} />
 
             <div className="mt-[4rem] md:ml-auto md:mx-0 mx-auto md:text-right text-center w-max">
               <h3 className="font-semibold text-eighty">Total Invoiice</h3>
@@ -130,8 +139,10 @@ const CreateSpace = () => {
                 />
                 <label htmlFor="terms">
                   I Accept{" "}
-                  <span className="text-primary">terms and agreement</span> of
-                  Picpan service
+                  <a href="" className="text-primary">
+                    terms and agreement
+                  </a>{" "}
+                  of Picpan service
                 </label>
               </div>
               <button
@@ -267,7 +278,7 @@ const ChoosePlan = ({ space, setSpace }) => {
               space.plan === "Premium" && "text-primary"
             }`}
           >
-            USD $0 Forever
+            USD $9 / month
           </p>
         </div>
         <div
@@ -367,14 +378,14 @@ const ChooseRegion = ({ space, setSpace }) => {
   );
 };
 
-const SettingSpace = ({ space, setSpace }) => {
+const SettingSpace = ({ space, setSpace, address }) => {
   return (
     <div className="mb-[20px] grid md:grid-cols-2 grid-cols-1 gap-4">
       <div className="w-full md:mb-[0] mb-[1.5rem] ">
         <h3 className="text-primary mb-[20px]">Your space address</h3>
         <div className="flex items-center gap-[0.7rem]">
           <label htmlFor="space_address" className="font-semibold text-eighty">
-            sg.picpan.io/
+            {address}/
           </label>
           <input
             type="text"

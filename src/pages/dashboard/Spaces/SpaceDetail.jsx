@@ -8,7 +8,7 @@ import { MdAddCircle } from "react-icons/md";
 import { IoCloudUpload, IoConstructOutline } from "react-icons/io5";
 import { FiSearch } from "react-icons/fi";
 import { IoIosAlbums } from "react-icons/io";
-import { BsFillFolderFill } from "react-icons/bs";
+import { BsFillFolderFill, BsFillPeopleFill } from "react-icons/bs";
 
 // Component
 import HeaderDashboardComponent from "../../../components/HeaderDashboardComponent";
@@ -25,7 +25,7 @@ import Alert from "../../../components/alert/alert";
 // images
 import repeatIcon from "../../../assets/images/repeat-icon.png";
 import galeryIcon from "../../../assets/images/icon/gallery.png";
-import { formatBytes } from "../../../util/config";
+import { formatBytes, MODE } from "../../../util/config";
 import { toast, Toaster } from "react-hot-toast";
 
 // Util
@@ -132,12 +132,18 @@ const SpaceDetail = () => {
             <Alert type="success" message="Success uploaded files" />
           );
 
-          const file = {
-            id: res?.data[0].file,
-            url: res?.data[0].url,
-          };
+          let tempFile = [];
 
-          setFiles((prev) => [...prev, file]);
+          for (let i = 0; i < res?.data.length; i++) {
+            const file = {
+              id: res?.data[i]?.file,
+              url: res?.data[i]?.url,
+            };
+
+            tempFile.push(file);
+          }
+
+          setFiles((prev) => [...prev, ...tempFile]);
         }
       })
       .catch((error) => console.log("error", error));
@@ -168,8 +174,6 @@ const SpaceDetail = () => {
     ).then((res) => {
       if (res.message == "The token is malformed.")
         navigate("/login", { replace: true });
-
-      if (res.statusCode == 500) navigate("/spaces", { replace: true });
 
       setCurrentAlbum(res.album[0].id);
       console.log(res.album[0].id);
@@ -417,12 +421,40 @@ const SpaceDetail = () => {
           navigate("/login", { replace: true });
 
         if (res.success) {
+          let tempFiles = files.filter((file) => file.id !== formFile.filename);
+          setFiles(tempFiles);
           setIsLoading(false);
 
           toast.custom(<Alert type="success" message="Success Delete File" />);
 
           setFormFile((prev) => ({ ...prev, filename: "" }));
           setLastRefresh(new Date());
+        }
+      }
+    );
+  }
+
+  function handleDeleteSpace() {
+    const data = {
+      spaceId: spaceId,
+    };
+
+    apiRequest(`${BASEURL}/space`, requestSetting("DELETE", data)).then(
+      (res) => {
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
+
+        if (res.success) {
+          toast.custom(
+            <Alert type="success" message="Successfuly Deleted Space" />
+          );
+          navigate("/spaces", { replace: true });
+          setIsLoading(false);
+        }
+
+        if (res.error) {
+          toast.custom(<Alert type="error" message={res.error} />);
+          setIsLoading(false);
         }
       }
     );
@@ -763,7 +795,8 @@ const SpaceDetail = () => {
                 {space.space?.name}
               </h2>
               <p>
-                {space.space?.region}.picpan.io/{space.space?.slug}
+                {space.space?.region}.picpan.
+                {MODE == "Development" ? "dev" : "io"}/{space.space?.slug}
               </p>
             </div>
             <div>
@@ -794,9 +827,21 @@ const SpaceDetail = () => {
               {/* 32% (31 GB of 100 GB) */}
             </div>
 
-            <div className="flex items-center text-[14px] gap-1 text-third cursor-pointer">
-              <h2>Delete space</h2>
-              <GoTrashcan className="text-[1.2rem]" />
+            <div className="text-[14px] text-third ">
+              <div
+                className="flex items-center  justify-end gap-2 mb-1 cursor-pointer"
+                onClick={() => navigate("members")}
+              >
+                <h2>Team members</h2>
+                <BsFillPeopleFill className="text-[1.2rem]" />
+              </div>
+              <div
+                className="flex items-center justify-end gap-2 cursor-pointer"
+                onClick={handleDeleteSpace}
+              >
+                <h2>Delete space</h2>
+                <GoTrashcan className="text-[1.2rem]" />
+              </div>
             </div>
           </div>
         </section>

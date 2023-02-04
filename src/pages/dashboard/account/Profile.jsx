@@ -178,7 +178,6 @@ const Account = () => {
               currentMenu={currentMenu}
               handleOnClick={(menuId) => setCurrentMenu(menuId)}
             />
-
             {currentMenu == menuTabs[0].id && (
               <ProfileScreen
                 setFormData={setFormProfile}
