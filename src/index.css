@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  height: 1000rem;
+  /* height: 1000rem; */
 }
 
 .container {

@@ -18,6 +18,7 @@ import SuccessPayment from "./pages/payment status/SuccessPayment";
 import FailedPayment from "./pages/payment status/FailedPayment";
 import Users from "./pages/dashboard/Users/Users";
 import Invitation from "./pages/dashboard/Invitation";
+import InvoiceDetail from "./pages/dashboard/Invoices/InvoiceDetail";
 
 function App() {
   const location = useLocation();
@@ -51,6 +52,7 @@ function App() {
           path="/invitation/accept/:invitationId"
           element={<Invitation />}
         />
+        <Route path="/invoice/:invoiceId" element={<InvoiceDetail />} />
 
         {/* Payment */}
         <Route path="/success" element={<SuccessPayment />} />

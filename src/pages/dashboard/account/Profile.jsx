@@ -48,6 +48,7 @@ const Account = () => {
 
       setInvoices(res.invoices);
 
+      console.log(res.invoices);
       setTimeout(() => {
         setIsLoading(false);
       }, 1000);
@@ -190,6 +191,7 @@ const Account = () => {
                 isPaid={isPaid}
                 items={invoices}
                 innerWidth={innerWidth}
+                navigate={navigate}
               />
             )}
           </div>
@@ -292,7 +294,7 @@ const ProfileScreen = ({ formData, setFormData, onSubmit }) => {
   );
 };
 
-const InvoiceScreen = ({ items, innerWidth }) => {
+const InvoiceScreen = ({ items, innerWidth, navigate }) => {
   const styleTable = "w-full ";
   const styleTrHead = "pb-[20px]";
   const styleTh =
@@ -319,27 +321,33 @@ const InvoiceScreen = ({ items, innerWidth }) => {
             </tr>
           </thead>
           <tbody className="pt-[2rem]">
-            {items.map((item) => (
-              <tr key={item.id}>
-                <td className={`${styleTd} text-primary font-semibold`}>
-                  #{item.paypalOrderId ?? "none"}
-                </td>
-                <td className={`${styleTd} text-eighty pr-5 text-left`}>
-                  24/07/2022
-                </td>
-                <td className={`${styleTd} text-eighty text-right pr-3`}>
-                  ${item.billAmount}
-                </td>
-                <td
-                  className={` ${styleTd} text-center bg-gre ${
-                    item.status == "Paid" ? "text-green-500" : "text-primary"
-                  }`}
-                >
-                  {item.status}
-                </td>
-                <td>{checkButtonIsPay(item.status)} </td>
-              </tr>
-            ))}
+            {items.map((item) => {
+              const date = new Date(item?.createdAt);
+              const year = date.getFullYear();
+              const month = date.getMonth();
+              const day = date.getDay();
+              return (
+                <tr key={item.id}>
+                  <td className={`${styleTd} text-primary font-semibold`}>
+                    #{item?.number}
+                  </td>
+                  <td className={`${styleTd} text-eighty pr-5 text-left`}>
+                    {`${day}/${month}/${year}`}
+                  </td>
+                  <td className={`${styleTd} text-eighty text-right pr-3`}>
+                    ${item.billAmount}
+                  </td>
+                  <td
+                    className={` ${styleTd} text-center bg-gre ${
+                      item.status == "Paid" ? "text-green-500" : "text-primary"
+                    }`}
+                  >
+                    {item.status}
+                  </td>
+                  <td>{checkButtonIsPay(item.status, navigate, item?.id)} </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       ) : (
@@ -356,14 +364,19 @@ const InvoiceScreen = ({ items, innerWidth }) => {
 };
 
 const CardInvoice = ({ item, key }) => {
+  const date = new Date(item?.createdAt);
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDay();
+
   return (
     <div className="bg-white shadow rounded-lg px-4 py-4 w-full" key={key}>
       <div className="flex items-center justify-between gap-5">
         <div className="flex items-center gap-3">
-          <h2 className="font-semibold text-primary">
-            #{item.paypalOrderId ?? "none"}
+          <h2 className="font-semibold text-primary">#{item?.number}</h2>
+          <h2 className="text-eighty text-[0.8rem]">
+            {`${day}/${month}/${year}`}
           </h2>
-          <h2 className="text-eighty text-[0.8rem]">24/07/2022</h2>
         </div>
         <div>{checkStatusInvoice(item.status)}</div>
       </div>
@@ -375,7 +388,7 @@ const CardInvoice = ({ item, key }) => {
   );
 };
 
-function checkButtonIsPay(statusPaid) {
+function checkButtonIsPay(statusPaid, navigate, id) {
   let button = "";
 
   switch (statusPaid) {
@@ -392,6 +405,7 @@ function checkButtonIsPay(statusPaid) {
       button = (
         <button
           className={`bg-eighty w-[60px] h-[30px] text-center text-[12px] px-3 rounded-md font-bold block text-white  ml-3 max-[866px]:ml-0`}
+          onClick={() => navigate(`/invoice/${id}`)}
         >
           Pay
         </button>

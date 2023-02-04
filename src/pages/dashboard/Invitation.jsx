@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { BASEURL, apiRequest, requestSetting } from "../../util/Api";
 import { Toaster, toast } from "react-hot-toast";
 import Alert from "../../components/alert/alert";
@@ -8,6 +8,7 @@ import Loading from "../../components/loading";
 
 const Invitation = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
   const { invitationId } = useParams();
 
   function acceptInvitation() {
@@ -27,7 +28,7 @@ const Invitation = () => {
         setIsLoading(false);
       }
 
-      if (res.error) {
+      if (res.statusCode !== 500 && res.error) {
         toast.custom(<Alert type="error" message={res.error} />);
         setIsLoading(false);
       }

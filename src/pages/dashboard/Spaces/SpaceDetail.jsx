@@ -34,6 +34,7 @@ const SpaceDetail = () => {
   const [innerWidth, setInnerWidth] = useState(window.innerWidth);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [filter, setFilter] = useState("");
 
   const [openModal, setOpenModal] = useState({
     addAlbum: false,
@@ -50,6 +51,7 @@ const SpaceDetail = () => {
     description: "",
   });
   const [formFolder, setFormFolder] = useState({
+    id: "",
     path: "",
     name: "",
   });
@@ -95,6 +97,8 @@ const SpaceDetail = () => {
       </div>
     );
   }
+
+  console.log("FILES", files);
 
   function handleUpload(files) {
     setImagesLength(files.length);
@@ -149,12 +153,20 @@ const SpaceDetail = () => {
       .catch((error) => console.log("error", error));
   }
 
+  const filteredFolders = folders.filter((folder) => {
+    if (folder.name.toLowerCase().includes(filter.toLowerCase())) return folder;
+  });
+
+  const filteredFiles = files.filter((file) => {
+    if (file.id.toLowerCase().includes(filter.toLowerCase())) return file;
+  });
+
   function getSpaces() {
     apiRequest(`${BASEURL}/space`, requestSetting("GET")).then((res) => {
       if (res.message == "The token is malformed.")
         navigate("/login", { replace: true });
 
-      const space = res.spaces.filter((space) => space.space.id === spaceId);
+      const space = res.spaces.filter((space) => space?.space?.id === spaceId);
       const firstSpaceId = space[0].space?.id;
 
       setSpace(space[0]);
@@ -162,6 +174,7 @@ const SpaceDetail = () => {
       setFormFolder((prev) => ({ ...prev, spaceId: firstSpaceId }));
 
       if (res.success) {
+        console.log(res);
         setIsLoading(false);
       }
     });
@@ -348,14 +361,17 @@ const SpaceDetail = () => {
     const data = {
       spaceId: spaceId,
       albumId: currentAlbum,
-      folderId: currentFolder,
+      folderId: formFolder.id,
       path: path,
+      name: formFolder.name,
     };
 
     setIsLoading(true);
     setOpenModal((prev) => ({ ...prev, editFolder: false }));
     apiRequest(`${BASEURL}/folder/rename`, requestSetting("PUT", data)).then(
       (res) => {
+        let tempFolders = [...folders];
+
         if (res.message == "The token is malformed.")
           navigate("/login", { replace: true });
 
@@ -366,7 +382,14 @@ const SpaceDetail = () => {
             <Alert type="success" message="Success Change Folder" />
           );
 
+          for (let i = 0; i < tempFolders.length; i++) {
+            if (tempFolders[i].id === res?.folder?.id) {
+              tempFolders[i].name = res?.folder?.name;
+            }
+          }
+
           setFormFolder((prev) => ({ ...prev, name: "" }));
+
           setLastRefresh(new Date());
         }
       }
@@ -888,6 +911,7 @@ const SpaceDetail = () => {
                   type="text"
                   placeholder="Search title or tags"
                   className="outline-none flex-1 text-fivety"
+                  onChange={(e) => setFilter(e.target.value)}
                 />
                 <FiSearch className="text-eighty text-[1.3rem] flex-2" />
               </div>
@@ -937,8 +961,8 @@ const SpaceDetail = () => {
                 )}
 
                 <ListImageComponent
-                  listFolders={folders}
-                  listFiles={files}
+                  listFolders={filteredFolders}
+                  listFiles={filteredFiles}
                   setCurrentFolder={setCurrentFolder}
                   setCurrentFile={setCurrentFile}
                   setOpenModal={setOpenModal}

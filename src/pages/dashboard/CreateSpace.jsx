@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast, Toaster } from "react-hot-toast";
 
 // Utils
 import { apiRequest, BASEURL, requestSetting } from "../../util/Api";
-import Route from "../../util/Route";
 
 // Component
 import Alert from "../../components/alert/alert";
@@ -28,6 +28,7 @@ const CreateSpace = () => {
     billPeriod: "Monthly",
   });
   const [paypalLink, setPaypalLink] = useState("");
+  const navigate = useNavigate();
   const btnCreateSpaceRef = useRef();
 
   function handleChangeTerm() {
@@ -71,6 +72,9 @@ const CreateSpace = () => {
           setOpenModalPay(true);
           setPaypalLink(res?.paypal?.links[1]?.href);
         }
+
+        if (res.success && data.plan == "Free")
+          navigate("/spaces", { replace: true });
       }
     );
   }

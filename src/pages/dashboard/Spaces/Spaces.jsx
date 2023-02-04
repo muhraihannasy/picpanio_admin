@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast";
 import { apiRequest, BASEURL, requestSetting } from "../../../util/Api";
 import Route from "../../../util/Route";
 
@@ -10,11 +10,14 @@ import { IoMailOpenOutline, IoNavigateCircleOutline } from "react-icons/io5";
 // Component
 import HeaderDashboardComponent from "../../../components/HeaderDashboardComponent";
 import Loading from "../../../components/loading";
+import Alert from "../../../components/alert/alert";
 
 const Spaces = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [spaces, setSpaces] = useState([]);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
   const [isUnverified, setIsUnverified] = useState(false);
+  const [spaces, setSpaces] = useState([]);
+  const [invitation, setInvitation] = useState();
   const navigate = useNavigate();
 
   function getUserInfo() {
@@ -32,6 +35,7 @@ const Spaces = () => {
   function getSpaces() {
     let spacesArr = [];
 
+    setIsLoading(false);
     apiRequest(`${BASEURL}/space`, requestSetting("GET")).then((res) => {
       if (res.message == "The token is malformed.")
         navigate("/login", { replace: true });
@@ -48,10 +52,56 @@ const Spaces = () => {
     });
   }
 
+  function getMyInvitation() {
+    apiRequest(`${BASEURL}/invitation/me`, requestSetting("GET")).then(
+      (res) => {
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
+
+        if (res.success) {
+          setIsLoading(false);
+
+          setInvitation(res?.invitations[res?.invitations?.length - 1]);
+        }
+      }
+    );
+  }
+
+  function handleAcceptInvitation() {
+    const data = {
+      invitationId: invitation.id,
+    };
+
+    setIsLoading(true);
+    apiRequest(
+      `${BASEURL}/invitation/accept`,
+      requestSetting("POST", data)
+    ).then((res) => {
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
+
+      if (res.success) {
+        setIsLoading(false);
+        toast.custom(<Alert type="success" message="Successfuly Invited" />);
+        setInvitation("");
+        setLastRefresh(new Date());
+      }
+
+      if (res.statusCode !== 500 && res.error) {
+        toast.custom(<Alert type="error" message={res.error} />);
+        setIsLoading(false);
+      }
+    });
+  }
+
   useEffect(() => {
     getUserInfo();
-    getSpaces();
+    getMyInvitation();
   }, []);
+
+  useEffect(() => {
+    getSpaces();
+  }, [lastRefresh]);
 
   useEffect(() => {
     document.body.style.background = "#ffffff";
@@ -73,6 +123,8 @@ const Spaces = () => {
         <section>
           <div className="container">
             {isUnverified && <Unverified />}
+
+            {invitation && <Invitation onSubmit={handleAcceptInvitation} />}
             <div>
               {spaces.length !== 0 && (
                 <>
@@ -90,6 +142,23 @@ const Spaces = () => {
           </div>
         </section>
       </main>
+    </div>
+  );
+};
+
+const Invitation = ({ onSubmit }) => {
+  return (
+    <div className="w-full bg-fourty rounded-[8px] mt-[2rem] flex items-center  px-5 py-4 md:flex-row flex-col gap-3">
+      <h2 className=" flex-1 lg:text-center max-[339px]:text-center text-primary lg:pl-24">
+        Your have invited to <span className="font-bold">NSTEK</span> space
+      </h2>
+
+      <button
+        className="bg-secondary px-6 py-2 rounded-[8px] font-bold text-white"
+        onClick={onSubmit}
+      >
+        Accept Invitation
+      </button>
     </div>
   );
 };
@@ -136,21 +205,25 @@ const SpaceItems = ({ items, navigate }) => {
         Create Space
       </Link>
       <div className="grid md:grid-cols-2 grid-cols-1 gap-[1rem]">
-        {items.map((item) => {
-          const { id, name, region, slug, status, plan } = item;
-          const url = `${region}.picpan.io/${slug}`;
+        {items.map((item, index) => {
+          const url = `${item?.region}.picpan.io/${item?.slug}`;
+
           return (
             <div
               className="bg-ninety rounded-[8px] px-6 py-4 cursor-pointer"
-              key={id}
-              onClick={() => navigate(`/spaces/${id}`)}
+              key={index}
+              onClick={() => navigate(`/spaces/${item?.id}`)}
             >
               <div className="flex items-center justify-between">
                 <h3 className="text-[16px] font-semibold text-primary">
-                  {name}
+                  {item?.name}
                 </h3>
-                <p className={`font-bold text-[14px] ${statusColor(status)}`}>
-                  {status}
+                <p
+                  className={`font-bold text-[14px] ${statusColor(
+                    item?.status
+                  )}`}
+                >
+                  {item?.status}
                 </p>
               </div>
 
@@ -158,18 +231,18 @@ const SpaceItems = ({ items, navigate }) => {
                 <div>
                   <p className="text-eighty text-[14px]">{url}</p>
                   <p className="text-[12px] text-eighty">
-                    {region == "ap1" && "Asia Pacific (Singapore)"}
-                    {region == "us1" && "Asia Pacific (Dallas, TX)"}
-                    {region == "eu1" && "Europa (Germany)"}
+                    {item?.region == "ap1" && "Asia Pacific (Singapore)"}
+                    {item?.region == "us1" && "Asia Pacific (Dallas, TX)"}
+                    {item?.region == "eu1" && "Europa (Germany)"}
                   </p>
                 </div>
 
                 <p
                   className={`text-[14px] flex items-center font-regular text-14 px-3 h-[30px] rounded-[10px] text-eighty ${planColor(
-                    plan
+                    item?.plan
                   )} `}
                 >
-                  {plan}
+                  {item?.plan}
                 </p>
               </div>
             </div>

@@ -28,6 +28,7 @@ const Users = () => {
     role: "read",
   });
   const [invitations, setInvitations] = useState([]);
+  const [members, setMembers] = useState([]);
   const { spaceId } = useParams();
   const btnRole = "w-full h-[46px] text-center text-white px-4 transition-all";
 
@@ -86,6 +87,23 @@ const Users = () => {
     });
   }
 
+  function getMembers() {
+    apiRequest(
+      `${BASEURL}/space/users?spaceId=${spaceId}`,
+      requestSetting("GET")
+    ).then((res) => {
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
+
+      if (res.success) {
+        setIsLoading(false);
+
+        let tempUsers = res?.users.filter((user) => user.isOwner === false);
+        setMembers(tempUsers);
+      }
+    });
+  }
+
   function handleCancelInvitation(id) {
     setInvitations([]);
     return;
@@ -112,8 +130,38 @@ const Users = () => {
     );
   }
 
+  function handleDeleteMember(id) {
+    const data = {
+      spaceId,
+      userId: id,
+    };
+
+    setIsLoading(true);
+    apiRequest(`${BASEURL}/space/user`, requestSetting("DELETE", data)).then(
+      (res) => {
+        if (res.message == "The token is malformed.")
+          navigate("/login", { replace: true });
+
+        if (res.success) {
+          setIsLoading(false);
+          toast.custom(
+            <Alert type="success" message="Successfuly Deleted Member" />
+          );
+
+          setMembers([]);
+        }
+
+        if (res.error) {
+          toast.custom(<Alert type="error" message={res.error} />);
+          setIsLoading(false);
+        }
+      }
+    );
+  }
+
   useEffect(() => {
     getInvitationBySpace();
+    getMembers();
   }, []);
 
   return (
@@ -193,8 +241,8 @@ const Users = () => {
                   />
                 )}
                 <MemberTable
-                  items={invitations}
-                  onCancel={(id) => handleCancelInvitation(id)}
+                  items={members}
+                  onDeleteMember={(id) => handleDeleteMember(id)}
                 />
               </div>
             </div>
@@ -295,7 +343,7 @@ const InvitationTable = ({ items, onCancel }) => {
   );
 };
 
-const MemberTable = ({ items, onCancel }) => {
+const MemberTable = ({ items, onDeleteMember }) => {
   const styleParagraf = "font-regular text-[14px] text-eighty w-[90%]";
   const styleTable = "w-full relative";
   const styleTrHead = "pb-[20px]";
@@ -305,11 +353,9 @@ const MemberTable = ({ items, onCancel }) => {
 
   return (
     <div>
-      <h2 className="text-primary text-[18px] font-bold mb-[1.2rem]">
-        Members
-      </h2>
+      <h2 className="text-primary text-[18px] font-bold mb-[1rem]">Members</h2>
       <table className={styleTable}>
-        <thead className="py-[2rem]">
+        <thead className="py-[2rem] ">
           <tr className={styleTrHead}>
             <th className={`${styleTh} w-[8rem] pb-[0.5rem]`}>Name</th>
             <th className={`${styleTh} w-[16rem] pb-[0.5rem]`}>Email</th>
@@ -318,14 +364,15 @@ const MemberTable = ({ items, onCancel }) => {
 
             <th className="w-[12rem]"></th>
           </tr>
-          <div className="bg-seventy absolute h-[2px] w-[80%] mb-2 mt-1"></div>
         </thead>
-        <tbody className="pt-[2rem]">
+        <tbody className="pt-[5rem]">
           {items &&
             items.map((item, index) => (
               <tr key={index}>
-                <td className={`${styleTd} text-eighty`}>Muhammad</td>
-                <td className={`${styleTd} text-eighty `}>{item.email}</td>
+                <td className={`${styleTd} text-eighty`}>{item?.user?.name}</td>
+                <td className={`${styleTd} text-eighty `}>
+                  {item?.user?.email}
+                </td>
                 <td className={`${styleTd} text-eighty pr-5 text-left`}>
                   {item.role}
                 </td>
@@ -339,15 +386,7 @@ const MemberTable = ({ items, onCancel }) => {
 
                 <td className="text-primary">
                   {" "}
-                  <button
-                  // onClick={() => {
-                  //   setOpenModal((prev) => ({
-                  //     ...prev,
-                  //     confirmDeleteFile: true,
-                  //   }));
-                  //   setFormFile((prev) => ({ ...prev, filename: item.id }));
-                  // }}
-                  >
+                  <button onClick={() => onDeleteMember(item?.user.id)}>
                     <GoTrashcan className="text-third text-[1.45rem]" />
                   </button>
                 </td>

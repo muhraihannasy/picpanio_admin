@@ -73,9 +73,9 @@ const ListImageComponent = ({
                     setOpenModal((prev) => ({ ...prev, editFolder: true }));
                     setFormFolder((prev) => ({
                       ...prev,
+                      id: item.id,
                       name: item.name,
                     }));
-                    setCurrentFolder(item.id);
                   }}
                 >
                   <RiEditBoxFill className=" text-primary" />
@@ -117,7 +117,11 @@ const ListImageComponent = ({
                     }));
                 }}
               >
-                <img src={image} alt="" className="w-[30px] item-image" />
+                <img
+                  src={item?.url}
+                  alt=""
+                  className="w-[30px] h-[30px] item-image"
+                />
                 <h3 className="text-[12px] item-image">{item.id}</h3>
               </div>
 
