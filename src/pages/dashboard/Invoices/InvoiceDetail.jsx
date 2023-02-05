@@ -60,6 +60,8 @@ const InvoiceDetail = () => {
     getDetailInvoice();
   }, []);
 
+  console.log(paypalUrl, "INVOICES DETAILS");
+
   return (
     <>
       {/* Toast */}

@@ -59,6 +59,7 @@ const CreateSpace = () => {
 
     apiRequest(`${BASEURL}/space/order`, requestSetting("POST", space)).then(
       (res) => {
+        console.log("RESPONSE", res);
         if (res.error) {
           toast.custom(<Alert type="error" message={res.error} />);
         }
@@ -69,7 +70,6 @@ const CreateSpace = () => {
         }
 
         if (res.success && data.plan !== "Free") {
-          setOpenModalPay(true);
           setPaypalLink(res?.paypal?.links[1]?.href);
         }
 

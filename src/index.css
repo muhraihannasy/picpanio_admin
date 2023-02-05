@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 body {
+  padding-bottom: 3rem;
   /* height: 1000rem; */
 }
 

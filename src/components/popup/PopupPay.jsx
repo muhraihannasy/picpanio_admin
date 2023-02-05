@@ -23,12 +23,12 @@ const PopupPay = ({ openModal, to }) => {
         </p>
 
         <a
-          className="w-full h-[74px] bg-ninety rounded-[8px] block mx-auto"
-          href={to}
+          className="w-full h-[60px] transition-all bg-secondary hover:bg-primary text-white rounded-[8px] block mx-auto mt-8"
+          href={`/invoice/`}
           target="_blank"
         >
-          <div className="flex items-center justify-center">
-            <img src={paypalLogo} alt="" className="w-[100px]" />
+          <div className="flex items-center justify-center h-full">
+            <h2 className="font-semibold text-[1.2rem]">Checkout</h2>
           </div>
         </a>
       </div>

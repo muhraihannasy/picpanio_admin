@@ -124,7 +124,7 @@ const SpaceDetail = () => {
       redirect: "follow",
     };
 
-    fetch("https://space-api.picpan.dev/file", requestOptions)
+    fetch(`${BASEURL}/file, requestOptions)
       .then((response) => response.json())
       .then((res) => {
         if (res.message == "The token is malformed.")
