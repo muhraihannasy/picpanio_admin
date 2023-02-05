@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 // Util
 import { BASEURL, apiRequest, requestSetting } from "../../../util/Api";
 
@@ -7,21 +8,25 @@ import { BsArrowRepeat } from "react-icons/bs";
 
 // Component
 import HeaderDashboardComponent from "../../../components/HeaderDashboardComponent";
+import Loading from "../../../components/loading";
 
 // Image
 import postmanBtn from "../../../assets/images/icon/postman_btn.png";
 import apiaryBtn from "../../../assets/images/icon/apiary_btn.png";
 
 const ApiIntegration = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [apiToken, setApiToken] = useState("");
   const styleParagraf = "font-regular text-[14px] text-eighty w-[90%]";
 
   function generateApiToken() {
+    setIsLoading(true);
     apiRequest(
       `${BASEURL}/account/generatetoken`,
       requestSetting("POST", {})
     ).then((res) => {
       if (res?.success) {
+        setIsLoading(false);
         setApiToken(res?.apiToken);
       }
     });
@@ -33,6 +38,9 @@ const ApiIntegration = () => {
     <>
       {/* Header */}
       <HeaderDashboardComponent />
+
+      {/* Loading */}
+      {isLoading && <Loading />}
 
       <main>
         <section>
@@ -65,6 +73,10 @@ const ApiIntegration = () => {
             </div>
             <div>
               <h2 className="text-primary font-bold mb-[25px]">API Token</h2>
+              <p className={`${styleParagraf} mb-[25px]`}>
+                We don’t show your API token, please re-generate token and save
+                your token in the safe place
+              </p>
               <input
                 type="text"
                 className="w-full bg-ninety border border-seventy rounded-[8px] h-[52px] focus:outline-none text-center font-bold text-eighty text-[18px]"

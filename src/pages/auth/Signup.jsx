@@ -10,8 +10,10 @@ import ButtonComponent from "../../components/ButtonComponent";
 import { BASEURL, requestSetting } from "../../util/Api";
 import { toast, Toaster } from "react-hot-toast";
 import Alert from "../../components/alert/alert";
+import Loading from "../../components/loading";
 
 const Signup = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -28,25 +30,34 @@ const Signup = () => {
       return;
     }
 
+    setIsLoading(true);
     fetch(`${BASEURL}/auth/register`, requestSetting("POST", formData))
       .then((res) => res.json())
       .then((res) => {
-        const { statusCode, error, message } = res;
+        const { statusCode, success, error, message } = res;
+
         if (statusCode === 400 || statusCode === 500) {
+          setIsLoading(false);
           toast.custom(<Alert type="error" message={message} />);
           return;
         }
 
-        toast.custom(
-          <Alert type="success" message="Successfully created Account" />
-        );
-        setTimeout(() => {
-          navigate("/login", { replace: true });
-        }, 1000);
+        if (error) {
+          setIsLoading(false);
+          toast.custom(<Alert type="error" message={error} />);
+        }
+
+        if (success) {
+          toast.custom(
+            <Alert type="success" message="Successfully created Account" />
+          );
+          setTimeout(() => {
+            navigate("/login", { replace: true });
+          }, 1000);
+        }
       })
       .catch((e) => {
         console.log(e);
-        return;
       });
   };
 
@@ -57,6 +68,9 @@ const Signup = () => {
     <div className="pb-[2rem]">
       {/* Toast */}
       <Toaster />
+
+      {/* Loading */}
+      {isLoading && <Loading />}
 
       <header className="container">
         <nav className="flex justify-between items-center text-[14px] text-fivety pt-[1rem]">

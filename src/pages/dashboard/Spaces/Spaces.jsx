@@ -33,14 +33,14 @@ const Spaces = () => {
   }
 
   function getSpaces() {
-    let spacesArr = [];
-
-    setIsLoading(false);
+    setIsLoading(true);
     apiRequest(`${BASEURL}/space`, requestSetting("GET")).then((res) => {
       if (res.message == "The token is malformed.")
         navigate("/login", { replace: true });
 
-      res.spaces.forEach((space) => {
+      let spacesArr = [];
+
+      res.spaces.map((space) => {
         spacesArr.push(space.space);
       });
 
@@ -123,8 +123,8 @@ const Spaces = () => {
         <section>
           <div className="container">
             {isUnverified && <Unverified />}
-
             {invitation && <Invitation onSubmit={handleAcceptInvitation} />}
+
             <div>
               {spaces.length !== 0 && (
                 <>
@@ -135,8 +135,10 @@ const Spaces = () => {
                 </>
               )}
 
-              {spaces.length == 0 && !isLoading && (
+              {spaces.length == 0 && !isLoading ? (
                 <NotHaveSpace isUnverified={isUnverified} />
+              ) : (
+                ""
               )}
             </div>
           </div>
@@ -232,15 +234,15 @@ const SpaceItems = ({ items, navigate }) => {
                   <p className="text-eighty text-[14px]">{url}</p>
                   <p className="text-[12px] text-eighty">
                     {item?.region == "ap1" && "Asia Pacific (Singapore)"}
-                    {item?.region == "us1" && "Asia Pacific (Dallas, TX)"}
+                    {item?.region == "us1" && "US (Dallas, TX)"}
                     {item?.region == "eu1" && "Europa (Germany)"}
                   </p>
                 </div>
 
                 <p
-                  className={`text-[14px] flex items-center font-regular text-14 px-3 h-[30px] rounded-[10px] text-eighty ${planColor(
-                    item?.plan
-                  )} `}
+                  className={`text-[14px] flex items-center font-regular text-14 px-3 h-[30px] rounded-[10px] ${
+                    item?.plan == "Enterprise" ? "text-white" : "text-eighty"
+                  } ${planColor(item?.plan)} `}
                 >
                   {item?.plan}
                 </p>

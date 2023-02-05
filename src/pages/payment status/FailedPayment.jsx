@@ -27,6 +27,7 @@ const SuccessPayment = () => {
                 text="Go to Spaces"
                 color="white"
                 type="link"
+                to="/spaces"
               />
             </div>
           </div>

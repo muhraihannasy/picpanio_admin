@@ -22,12 +22,14 @@ const CreateSpace = () => {
   const [space, setSpace] = useState({
     name: "",
     slug: "",
-    description: "",
     plan: "Premium",
     region: "ap1",
     billPeriod: "Monthly",
   });
+
   const [paypalLink, setPaypalLink] = useState("");
+  const [totalPayment, setTotalPayment] = useState(0);
+
   const navigate = useNavigate();
   const btnCreateSpaceRef = useRef();
 
@@ -57,24 +59,31 @@ const CreateSpace = () => {
       return;
     }
 
+    setIsLoading(true);
+    console.log(data);
     apiRequest(`${BASEURL}/space/order`, requestSetting("POST", space)).then(
       (res) => {
         console.log("RESPONSE", res);
         if (res.error) {
+          setIsLoading(false);
           toast.custom(<Alert type="error" message={res.error} />);
         }
         if (res.success) {
+          setIsLoading(false);
           toast.custom(
             <Alert type="success" message="Successfuly Created Space" />
           );
         }
 
         if (res.success && data.plan !== "Free") {
+          setIsLoading(false);
           setPaypalLink(res?.paypal?.links[1]?.href);
         }
 
-        if (res.success && data.plan == "Free")
+        if (res.success && data.plan == "Free") {
+          setIsLoading(false);
           navigate("/spaces", { replace: true });
+        }
       }
     );
   }
@@ -101,19 +110,43 @@ const CreateSpace = () => {
     setAddress(address);
   }
 
+  function checkTotalPayment() {
+    let total = 0;
+    switch (true) {
+      case space.billPeriod == "Monthly" && space.plan == "Premium":
+        total = 12;
+        break;
+      case space.billPeriod == "Annually" && space.plan == "Premium":
+        total = 9 * 12;
+        break;
+      case space.billPeriod == "Monthly" && space.plan == "Enterprise":
+        total = 39;
+        break;
+      case space.billPeriod == "Annually" && space.plan == "Enterprise":
+        total = 35 * 12;
+        break;
+      default:
+        break;
+    }
+
+    setTotalPayment(total);
+  }
+
   useEffect(() => {
     checkSpaceAddress();
-    console.log(address);
+    checkTotalPayment();
   }, [space, address]);
+
   return (
     <>
       {/* Toast */}
       <Toaster />
       {/* Popup Pay */}
       <PopupPay openModal={openModalPay} to={paypalLink} />
-      {console.log(paypalLink)}
+
       {/* Loading */}
       {isLoading && <Loading />}
+
       {/* Header */}
       <HeaderDashboardComponent />
       {/* Main Content */}
@@ -131,7 +164,9 @@ const CreateSpace = () => {
 
             <div className="mt-[4rem] md:ml-auto md:mx-0 mx-auto md:text-right text-center w-max">
               <h3 className="font-semibold text-eighty">Total Invoiice</h3>
-              <p className="font-semibold text-[18px] text-primary">USD $12</p>
+              <p className="font-semibold text-[18px] text-primary">
+                USD ${totalPayment}
+              </p>
             </div>
             <div className="w-max mt-[1.5rem] md:ml-auto md:mx-0 mx-auto flex items-center md:flex-row flex-col gap-10">
               <div>

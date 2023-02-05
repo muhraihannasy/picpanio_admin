@@ -43,6 +43,7 @@ const SpaceDetail = () => {
     editAlbum: false,
     confirmDeleteFolder: false,
     confirmDeleteFile: false,
+    confirmDeleteSpace: false,
     modalDetailImage: false,
   });
   const [path, setPath] = useState("root");
@@ -124,7 +125,7 @@ const SpaceDetail = () => {
       redirect: "follow",
     };
 
-    fetch(`${BASEURL}/file, requestOptions)
+    fetch(`${BASEURL}/file`, requestOptions)
       .then((response) => response.json())
       .then((res) => {
         if (res.message == "The token is malformed.")
@@ -188,8 +189,8 @@ const SpaceDetail = () => {
       if (res.message == "The token is malformed.")
         navigate("/login", { replace: true });
 
-      setCurrentAlbum(res.album[0].id);
-      console.log(res.album[0].id);
+      setCurrentAlbum(res?.album[0]?.id);
+      // console.log(res.album[0].id);
       setAlbums(res.album);
     });
   }
@@ -307,11 +308,15 @@ const SpaceDetail = () => {
         if (res.success) {
           setIsLoading(false);
 
-          toast.custom(<Alert type="success" message="Success Delete Album" />);
-
-          setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
+          toast.custom(
+            <Alert type="success" message="Success Delete Album" />,
+            {
+              duration: 1000,
+            }
+          );
           setFolders([]);
           setFiles([]);
+          setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
           setLastRefresh(new Date());
         }
       }
@@ -331,7 +336,7 @@ const SpaceDetail = () => {
       name: formFolder.name,
     };
 
-    // setIsLoading(true);
+    setIsLoading(true);
     setOpenModal((prev) => ({ ...prev, addFolder: false }));
     apiRequest(`${BASEURL}/folder`, requestSetting("POST", data)).then(
       (res) => {
@@ -339,7 +344,7 @@ const SpaceDetail = () => {
           navigate("/login", { replace: true });
 
         if (res.success) {
-          // setIsLoading(false);
+          setIsLoading(false);
 
           toast.custom(
             <Alert type="success" message="Success Create Folder" />
@@ -409,12 +414,14 @@ const SpaceDetail = () => {
       confirmDeleteFolder: false,
       editFolder: false,
     }));
+    setIsLoading(true);
     apiRequest(`${BASEURL}/folder`, requestSetting("DELETE", data)).then(
       (res) => {
         if (res.message == "The token is malformed.")
           navigate("/login", { replace: true });
 
         if (res.success) {
+          setIsLoading(false);
           toast.custom(
             <Alert type="success" message="Success Delete Folder" />
           );
@@ -462,6 +469,7 @@ const SpaceDetail = () => {
       spaceId: spaceId,
     };
 
+    setIsLoading(true);
     apiRequest(`${BASEURL}/space`, requestSetting("DELETE", data)).then(
       (res) => {
         if (res.message == "The token is malformed.")
@@ -500,6 +508,9 @@ const SpaceDetail = () => {
       case "edit_folder":
         setOpenModal((prev) => ({ ...prev, editFolder: false }));
         setFormFolder((prev) => ({ ...prev, name: "" }));
+        break;
+      case "delete_space":
+        setOpenModal((prev) => ({ ...prev, confirmDeleteSpace: false }));
         break;
       case "delete_file":
         setOpenModal((prev) => ({ ...prev, confirmDeleteFile: false }));
@@ -780,6 +791,13 @@ const SpaceDetail = () => {
         />
       </PopupEdit>
 
+      {/* Modal Delete Space */}
+      <PopupDelete
+        onDelete={handleDeleteSpace}
+        openModal={openModal.confirmDeleteSpace}
+        onCancel={() => handleCancel("delete_space")}
+        title="You cannot restore any files regarding the Space after deleted the Space”"
+      />
       {/* Modal Delete Folder */}
       <PopupDelete
         onDelete={handleDeleteFolder}
@@ -860,7 +878,12 @@ const SpaceDetail = () => {
               </div>
               <div
                 className="flex items-center justify-end gap-2 cursor-pointer"
-                onClick={handleDeleteSpace}
+                onClick={() =>
+                  setOpenModal((prev) => ({
+                    ...prev,
+                    confirmDeleteSpace: true,
+                  }))
+                }
               >
                 <h2>Delete space</h2>
                 <GoTrashcan className="text-[1.2rem]" />
@@ -874,10 +897,15 @@ const SpaceDetail = () => {
             <button
               className="flex items-center justify-between px-4 bg-primary w-[194px] max-[798px]:w-max rounded-[8px] h-[36px] flex-2"
               onClick={() => {
-                setOpenModal({ addAlbum: true });
+                setOpenModal((prev) => ({
+                  ...prev,
+                  addAlbum: true,
+                }));
               }}
             >
-              {innerWidth >= 798 && <h3>Add Album</h3>}
+              {innerWidth >= 798 && (
+                <h3 className="font-semibold">Add Album</h3>
+              )}
 
               <div className={`${innerWidth <= 798 ? "hidden" : "block"}`}>
                 <MdAddCircle className="text-[1.2rem]" />
@@ -892,10 +920,15 @@ const SpaceDetail = () => {
               <button
                 className="flex items-center justify-between px-4 bg-eighty w-[194px] max-[798px]:w-max rounded-[8px] h-[36px] flex-2"
                 onClick={() => {
-                  setOpenModal({ addFolder: true });
+                  setOpenModal((prev) => ({
+                    ...prev,
+                    addFolder: true,
+                  }));
                 }}
               >
-                {innerWidth >= 798 && <h3>Add Folder</h3>}
+                {innerWidth >= 798 && (
+                  <h3 className="font-semibold">Add Folder</h3>
+                )}
 
                 <div className={`${innerWidth <= 798 ? "hidden" : "block"}`}>
                   <MdAddCircle className="text-[1.2rem]" />

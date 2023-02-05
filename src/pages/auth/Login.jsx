@@ -34,7 +34,7 @@ const Login = () => {
       requestSetting("POST", body)
     ).then((res) => {
       setIsLoading(false);
-      if (res.success) {
+      if (res?.success) {
         toast.custom(<Alert type="success" message="Check your email inbox" />);
       }
     });
@@ -48,7 +48,7 @@ const Login = () => {
       .then((res) => res.json())
       .then((res) => {
         setIsLoading(false);
-        if (res.error) {
+        if (res?.error) {
           toast.custom(<Alert type="error" message={res.error} />);
           return;
         }

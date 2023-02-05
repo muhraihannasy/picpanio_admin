@@ -1,5 +1,5 @@
-// export const BASEURL = "https://space-api.picpan.dev";
-export const BASEURL = "https://space-api.picpan.io";
+export const BASEURL = "https://space-api.picpan.dev";
+// export const BASEURL = "https://space-api.picpan.io";
 
 export const requestSetting = (method, body = {}) => {
   const token = localStorage.getItem("acctkn");

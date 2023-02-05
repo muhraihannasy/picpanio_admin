@@ -55,8 +55,8 @@ function App() {
         <Route path="/invoice/:invoiceId" element={<InvoiceDetail />} />
 
         {/* Payment */}
-        <Route path="/success" element={<SuccessPayment />} />
-        <Route path="/failed" element={<FailedPayment />} />
+        <Route path="/invoice/payment/success" element={<SuccessPayment />} />
+        <Route path="/invoice/payment/cancel" element={<FailedPayment />} />
       </Routes>
     </div>
   );
