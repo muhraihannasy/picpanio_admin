@@ -198,6 +198,20 @@ const NotHaveSpace = ({ isUnverified }) => {
 };
 
 const SpaceItems = ({ items, navigate }) => {
+  function handleClickSpace(id, statusSpace) {
+    if (statusSpace === "Pending") {
+      toast.custom(
+        <Alert
+          type="error"
+          message="You must finished your payment to unclock this space"
+        />
+      );
+
+      return;
+    }
+    navigate(`/spaces/${id}`);
+  }
+
   return (
     <>
       <Link
@@ -214,7 +228,7 @@ const SpaceItems = ({ items, navigate }) => {
             <div
               className="bg-ninety rounded-[8px] px-6 py-4 cursor-pointer"
               key={index}
-              onClick={() => navigate(`/spaces/${item?.id}`)}
+              onClick={() => handleClickSpace(item?.id, item.status)}
             >
               <div className="flex items-center justify-between">
                 <h3 className="text-[16px] font-semibold text-primary">

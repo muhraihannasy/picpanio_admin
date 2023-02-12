@@ -73,16 +73,30 @@ const ApiIntegration = () => {
             </div>
             <div>
               <h2 className="text-primary font-bold mb-[25px]">API Token</h2>
-              <p className={`${styleParagraf} mb-[25px]`}>
-                We don’t show your API token, please re-generate token and save
-                your token in the safe place
-              </p>
-              <input
-                type="text"
-                className="w-full bg-ninety border border-seventy rounded-[8px] h-[52px] focus:outline-none text-center font-bold text-eighty text-[18px]"
-                readOnly
-                value={apiToken}
-              />
+
+              {apiToken === "" ? (
+                <div
+                  className={`w-full bg-ninety border border-seventy rounded-[8px]  focus:outline-none text-center  text-eighty py-3 px-3 ${
+                    apiToken === ""
+                      ? "text-[14px]"
+                      : "font-bold md:text-[18px] "
+                  }`}
+                >
+                  We don’t show your API token, please re-generate token and
+                  save your token in the safe place
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  className={`w-full bg-ninety border border-seventy rounded-[8px]  focus:outline-none text-center  text-eighty py-3 px-3 ${
+                    apiToken === ""
+                      ? "text-[14px]"
+                      : "font-bold md:text-[18px] "
+                  }`}
+                  value={apiToken}
+                  readOnly
+                />
+              )}
 
               <div
                 className="flex items-center justify-center gap-2 mt-[13px] cursor-pointer"

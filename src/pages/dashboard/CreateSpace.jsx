@@ -68,11 +68,14 @@ const CreateSpace = () => {
           setIsLoading(false);
           toast.custom(<Alert type="error" message={res.error} />);
         }
+
         if (res.success) {
           setIsLoading(false);
           toast.custom(
             <Alert type="success" message="Successfuly Created Space" />
           );
+
+          navigate(`/invoice/${res?.invoice?.id}`);
         }
 
         if (res.success && data.plan !== "Free") {

@@ -855,7 +855,7 @@ const SpaceDetail = () => {
               </h2>
               <p className="text-[14px]">
                 {space.space?.region == "ap1" && "Asia - Singapore"}
-                {space.space?.region == "us1" && "Asia Dallas, TX"}
+                {space.space?.region == "us1" && "US Dallas, TX"}
                 {space.space?.region == "eu1" && "Europa Germany"}
               </p>
             </div>
@@ -962,6 +962,7 @@ const SpaceDetail = () => {
                 setPath={setPath}
                 path={path}
                 setCurrentAlbum={setCurrentAlbum}
+                currentAlbum={currentAlbum}
                 setFormAlbum={setFormAlbum}
                 setFormFolder={setFormFolder}
                 setOpenModal={setOpenModal}

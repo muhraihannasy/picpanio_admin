@@ -8,6 +8,7 @@ const ListAlbumComponent = ({
   setFormFolder,
   setOpenModal,
   setCurrentAlbum,
+  currentAlbum,
   setPath,
 }) => {
   return (
@@ -21,7 +22,9 @@ const ListAlbumComponent = ({
           listItem.map((item, index) => {
             return (
               <li
-                className="flex items-center justify-between border-b border-seventy text-[12px] text-primary h-[37px] cursor-pointer pl-3 w-[240px]"
+                className={`flex items-center justify-between border-b border-seventy text-[12px] text-primary h-[37px] cursor-pointer pl-3 w-[240px] ${
+                  currentAlbum == item.id && "bg-white"
+                }`}
                 key={index}
               >
                 <div
