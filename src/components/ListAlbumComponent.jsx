@@ -12,7 +12,7 @@ const ListAlbumComponent = ({
   setPath,
 }) => {
   return (
-    <div className="w-[240px] h-[591px] bg-[#F5F5F5] pb-[5px] rounded-tl-[6px] rounded-bl-[6px] border-l-2 border-b-2 overflow-y-auto overflow-x-hidden list-album ">
+    <div className="max-[836px]:w-[300px] max-[836px]:h-full w-[240px] h-[591px] bg-[#F5F5F5] pb-[5px] rounded-tl-[6px] rounded-bl-[6px] border-l-2 border-b-2 overflow-y-auto overflow-x-hidden list-album fixed z-[99] top-0 left-0">
       {/* absolute opacity-0 */}
       <ul>
         {listItem.length === 0 && (
@@ -22,7 +22,7 @@ const ListAlbumComponent = ({
           listItem.map((item, index) => {
             return (
               <li
-                className={`flex items-center justify-between border-b border-seventy text-[12px] text-primary h-[37px] cursor-pointer pl-3 w-[240px] ${
+                className={`flex items-center justify-between border-b border-seventy text-[12px] text-primary h-[37px] cursor-pointer pl-3 max-[836px]:w-full w-[240px] ${
                   currentAlbum == item.id && "bg-white"
                 }`}
                 key={index}

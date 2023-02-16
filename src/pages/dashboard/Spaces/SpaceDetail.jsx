@@ -9,6 +9,7 @@ import { IoCloudUpload, IoConstructOutline } from "react-icons/io5";
 import { FiSearch } from "react-icons/fi";
 import { IoIosAlbums } from "react-icons/io";
 import { BsFillFolderFill, BsFillPeopleFill } from "react-icons/bs";
+import { BiPhotoAlbum } from "react-icons/bi";
 
 // Component
 import HeaderDashboardComponent from "../../../components/HeaderDashboardComponent";
@@ -45,6 +46,7 @@ const SpaceDetail = () => {
     confirmDeleteFile: false,
     confirmDeleteSpace: false,
     modalDetailImage: false,
+    // showAlbum: false
   });
   const [path, setPath] = useState("root");
   const [formAlbum, setFormAlbum] = useState({
@@ -98,8 +100,6 @@ const SpaceDetail = () => {
       </div>
     );
   }
-
-  console.log("FILES", files);
 
   function handleUpload(files) {
     setImagesLength(files.length);
@@ -956,6 +956,10 @@ const SpaceDetail = () => {
 
           <div className="container pt-[18px]">
             <div className="border-t-2 border-r-2 flex rounded-tl-[6px] rounded-bl-[4px]">
+              <div className="max-[836px]:block hidden fixed top-[10rem] left-[0.6rem] z-[999] bg-primary text-white text-[1.5rem] p-2 rounded-[8px] cursor-pointer">
+                <BiPhotoAlbum />
+              </div>
+
               <ListAlbumComponent
                 listItem={albums}
                 setLastChangedAlbum={setLastChangedAlbum}
