@@ -61,6 +61,8 @@ const Spaces = () => {
         if (res.success) {
           setIsLoading(false);
 
+          console.log(res);
+
           setInvitation(res?.invitations[res?.invitations?.length - 1]);
         }
       }

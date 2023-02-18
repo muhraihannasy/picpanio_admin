@@ -9,7 +9,7 @@ const PopupPay = ({ openModal, to }) => {
         }`}
       ></div>
       <div
-        className={`w-[360px] rounded-[4px] bg-white shadow-lg fixed left-[50%] top-[10rem] right-[50%] translate-x-[-50%] py-[1.5rem] px-[1.5rem] z-[999] transition-all ${
+        className={`w-[80%] rounded-[4px] bg-white shadow-lg fixed left-[50%] top-[10rem] right-[50%] translate-x-[-50%] py-[1.5rem] px-[1.5rem] z-[999] transition-all ${
           openModal
             ? "visible opacity-100 translate-y-0"
             : "translate-y-[-2rem] invisible opacity-0"

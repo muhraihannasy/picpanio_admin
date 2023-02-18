@@ -12,7 +12,7 @@ import paypalLogo from "../../../assets/images/paypal_logo.png";
 import { apiRequest, BASEURL, requestSetting } from "../../../util/Api";
 
 // Style
-const styleCard = `w-[480px] h-[218px] bg-ninety rounded-[4px] flex items-center justify-center mx-auto py-5`;
+const styleCard = `max-[836px]:w-full w-[480px] h-[218px] bg-ninety rounded-[4px] flex items-center justify-center mx-auto py-5`;
 const styleLi = `flex items-center justify-between gap-20`;
 const styleTitle = `font-semibold text-eighty text-[14px]`;
 const styleSubTitle = `text-eighty text-[14px]`;
@@ -75,7 +75,7 @@ const InvoiceDetail = () => {
 
       <main>
         <section>
-          <div className="container w-max">
+          <div className="container w-full">
             <h2 className="font-semibold text-primary text-[20px] mb-8 mt-5">
               Invoice #{invoice.number}
             </h2>
@@ -135,7 +135,7 @@ const InvoiceDetail = () => {
 
 const Unpaid = ({ paypalUrl }) => {
   return (
-    <div className="flex items-center justify-between mt-8">
+    <div className="flex items-center justify-between mt-8 max-[400px]:flex-col max-[400px]:gap-5">
       <div>
         <h2 className="font-semibold text-third text-[18px]">Unpaid</h2>
         <p className="text-[12px]">You can paid the invoice via Paypal</p>

@@ -46,7 +46,7 @@ const SpaceDetail = () => {
     confirmDeleteFile: false,
     confirmDeleteSpace: false,
     modalDetailImage: false,
-    // showAlbum: false
+    showAlbum: false,
   });
   const [path, setPath] = useState("root");
   const [formAlbum, setFormAlbum] = useState({
@@ -190,7 +190,18 @@ const SpaceDetail = () => {
         navigate("/login", { replace: true });
 
       setCurrentAlbum(res?.album[0]?.id);
-      // console.log(res.album[0].id);
+      setAlbums(res.album);
+    });
+  }
+
+  function getAlbumUpdated() {
+    apiRequest(
+      `${BASEURL}/album?spaceId=${spaceId}`,
+      requestSetting("GET")
+    ).then((res) => {
+      if (res.message == "The token is malformed.")
+        navigate("/login", { replace: true });
+
       setAlbums(res.album);
     });
   }
@@ -255,6 +266,8 @@ const SpaceDetail = () => {
 
         setFormAlbum((prev) => ({ ...prev, name: "", description: "" }));
         setLastRefresh(new Date());
+        setOpenModal((prev) => ({ ...prev, showAlbum: true }));
+        setCurrentAlbum(res?.album?.id);
       }
     });
   }
@@ -600,13 +613,15 @@ const SpaceDetail = () => {
 
   useEffect(() => {
     getSpaces();
-    (async () => getAlbums())();
+    (async () => {
+      getAlbumUpdated();
+    })();
   }, [lastRefresh]);
 
   useEffect(() => {
-    setTimeout(() => {
-      console.log(albums, "albumsssss");
-    }, 1000);
+    (async () => {
+      getAlbums();
+    })();
   }, []);
 
   useEffect(() => {
@@ -669,7 +684,7 @@ const SpaceDetail = () => {
             id="name"
             type="text"
             placeholder="name..."
-            className="w-[316px] h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
+            className="w-full h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
             onChange={(e) =>
               setFormAlbum((prev) => ({ ...prev, name: e.target.value }))
             }
@@ -684,7 +699,7 @@ const SpaceDetail = () => {
             id="description"
             type="text"
             placeholder="name..."
-            className="w-[316px] h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
+            className="w-full h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
             onChange={(e) =>
               setFormAlbum((prev) => ({ ...prev, description: e.target.value }))
             }
@@ -711,7 +726,7 @@ const SpaceDetail = () => {
             id="name"
             type="text"
             placeholder="name..."
-            className="w-[316px] h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
+            className="w-full h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
             onChange={(e) =>
               setFormFolder((prev) => ({ ...prev, name: e.target.value }))
             }
@@ -740,7 +755,7 @@ const SpaceDetail = () => {
             id="name"
             type="text"
             placeholder="name..."
-            className="w-[316px] h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
+            className="w-full h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
             onChange={(e) =>
               setFormAlbum((prev) => ({ ...prev, name: e.target.value }))
             }
@@ -755,7 +770,7 @@ const SpaceDetail = () => {
             id="description"
             type="text"
             placeholder="name..."
-            className="w-[316px] h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
+            className="w-full h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
             onChange={(e) =>
               setFormAlbum((prev) => ({ ...prev, description: e.target.value }))
             }
@@ -783,7 +798,7 @@ const SpaceDetail = () => {
           id="name"
           type="text"
           placeholder="name..."
-          className="w-[316px] h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
+          className="w-full h-[38px] outline-none border-seventy border rounded-[8px] px-[20px] "
           onChange={(e) =>
             setFormFolder((prev) => ({ ...prev, name: e.target.value }))
           }
@@ -830,7 +845,7 @@ const SpaceDetail = () => {
       {/* Main Content */}
       <main>
         <section className="mt-[37px]">
-          <div className="container flex flex-wrap items-center lg:justify-between justify-center gap-[2rem]  text-fivety ">
+          <div className="container  flex flex-wrap items-center lg:justify-between justify-center gap-[2rem] max-[836px]:gap-x-[1.2rem] max-[836px]:gap-y-[1.5rem]  text-fivety ">
             <div>
               <h2 className="font-bold text-[18px] mb-[5px]">
                 {space.space?.name}
@@ -893,30 +908,10 @@ const SpaceDetail = () => {
         </section>
 
         <section className="mt-[48px]">
-          <div className="container flex items-center justify-between text-white gap-10 max-[798px]:gap-3">
-            <button
-              className="flex items-center justify-between px-4 bg-primary w-[194px] max-[798px]:w-max rounded-[8px] h-[36px] flex-2"
-              onClick={() => {
-                setOpenModal((prev) => ({
-                  ...prev,
-                  addAlbum: true,
-                }));
-              }}
-            >
-              {innerWidth >= 798 && (
-                <h3 className="font-semibold">Add Album</h3>
-              )}
+          {/* button add Album & Folder,  On Screen less than 415px */}
 
-              <div className={`${innerWidth <= 798 ? "hidden" : "block"}`}>
-                <MdAddCircle className="text-[1.2rem]" />
-              </div>
-
-              <div className={`${innerWidth >= 798 ? "hidden" : "block"}`}>
-                <IoIosAlbums className="text-[1.2rem]" />
-              </div>
-            </button>
-
-            <div className="flex items-center flex-1 gap-3">
+          {innerWidth < 415 && (
+            <div className="container text-white flex justify-end gap-3 mb-[1.5rem]">
               <button
                 className="flex items-center justify-between px-4 bg-eighty w-[194px] max-[798px]:w-max rounded-[8px] h-[36px] flex-2"
                 onClick={() => {
@@ -939,7 +934,81 @@ const SpaceDetail = () => {
                 </div>
               </button>
 
-              <div className="h-[38px] flex items-center justify-between flex-1 border-2 px-3 border-seventy rounded-[8px]">
+              <button
+                className="flex items-center justify-between px-4 bg-primary w-[194px] max-[798px]:w-max rounded-[8px] h-[36px] flex-2 mb-[1rem]"
+                onClick={() => {
+                  setOpenModal((prev) => ({
+                    ...prev,
+                    addAlbum: true,
+                  }));
+                }}
+              >
+                {innerWidth >= 798 && (
+                  <h3 className="font-semibold">Add Album</h3>
+                )}
+
+                <div className={`${innerWidth <= 798 ? "hidden" : "block"}`}>
+                  <MdAddCircle className="text-[1.2rem]" />
+                </div>
+
+                <div className={`${innerWidth >= 798 ? "hidden" : "block"}`}>
+                  <IoIosAlbums className="text-[1.2rem]" />
+                </div>
+              </button>
+            </div>
+          )}
+
+          <div className="container flex items-center justify-between text-white gap-10 max-[798px]:gap-3">
+            {innerWidth > 415 && (
+              <button
+                className="flex items-center justify-between px-4 bg-primary w-[194px] max-[798px]:w-max rounded-[8px] h-[36px] flex-2"
+                onClick={() => {
+                  setOpenModal((prev) => ({
+                    ...prev,
+                    addAlbum: true,
+                  }));
+                }}
+              >
+                {innerWidth >= 798 && (
+                  <h3 className="font-semibold">Add Album</h3>
+                )}
+
+                <div className={`${innerWidth <= 798 ? "hidden" : "block"}`}>
+                  <MdAddCircle className="text-[1.2rem]" />
+                </div>
+
+                <div className={`${innerWidth >= 798 ? "hidden" : "block"}`}>
+                  <IoIosAlbums className="text-[1.2rem]" />
+                </div>
+              </button>
+            )}
+
+            <div className="flex items-center flex-1 gap-3">
+              {innerWidth > 415 && (
+                <button
+                  className="flex items-center justify-between px-4 bg-eighty w-[194px] max-[798px]:w-max rounded-[8px] h-[36px] flex-2"
+                  onClick={() => {
+                    setOpenModal((prev) => ({
+                      ...prev,
+                      addFolder: true,
+                    }));
+                  }}
+                >
+                  {innerWidth >= 798 && (
+                    <h3 className="font-semibold">Add Folder</h3>
+                  )}
+
+                  <div className={`${innerWidth <= 798 ? "hidden" : "block"}`}>
+                    <MdAddCircle className="text-[1.2rem]" />
+                  </div>
+
+                  <div className={`${innerWidth >= 798 ? "hidden" : "block"}`}>
+                    <BsFillFolderFill className="text-[1.2rem]" />
+                  </div>
+                </button>
+              )}
+
+              <div className="w-full h-[38px] flex items-center justify-between flex-1 border-2 px-3 border-seventy rounded-[8px]">
                 <input
                   type="text"
                   placeholder="Search title or tags"
@@ -949,14 +1018,21 @@ const SpaceDetail = () => {
                 <FiSearch className="text-eighty text-[1.3rem] flex-2" />
               </div>
             </div>
-            {/* <div className="w-[2.5rem] h-[2.5rem] bg-primary shadow-sm rounded-xl py-2  flex items-center justify-center">
-              <img src={galeryIcon} alt="" className="object-cover w-[45%]" />
-            </div> */}
           </div>
 
           <div className="container pt-[18px]">
             <div className="border-t-2 border-r-2 flex rounded-tl-[6px] rounded-bl-[4px]">
-              <div className="max-[836px]:block hidden fixed top-[10rem] left-[0.6rem] z-[999] bg-primary text-white text-[1.5rem] p-2 rounded-[8px] cursor-pointer">
+              <div
+                className={`max-[836px]:block hidden fixed top-[24rem] z-[999] bg-primary text-white text-[1.5rem] p-2 rounded-[8px] cursor-pointer shadow-md transition-all ${
+                  openModal.showAlbum ? "left-[320px]" : "left-[1rem]"
+                }`}
+                onClick={() =>
+                  setOpenModal((prev) => ({
+                    ...prev,
+                    showAlbum: !prev.showAlbum,
+                  }))
+                }
+              >
                 <BiPhotoAlbum />
               </div>
 
@@ -970,6 +1046,7 @@ const SpaceDetail = () => {
                 setFormAlbum={setFormAlbum}
                 setFormFolder={setFormFolder}
                 setOpenModal={setOpenModal}
+                openModal={openModal}
               />
 
               <div className="w-full flex-1">

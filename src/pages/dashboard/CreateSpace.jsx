@@ -171,7 +171,7 @@ const CreateSpace = () => {
                 USD ${totalPayment}
               </p>
             </div>
-            <div className="w-max mt-[1.5rem] md:ml-auto md:mx-0 mx-auto flex items-center md:flex-row flex-col gap-10">
+            <div className="w-full mt-[1.5rem] md:ml-auto md:mx-0 mx-auto flex items-center md:flex-row flex-col gap-10">
               <div>
                 <input
                   type="checkbox"
@@ -181,10 +181,14 @@ const CreateSpace = () => {
                 />
                 <label htmlFor="terms">
                   I Accept{" "}
-                  <a href="" className="text-primary">
+                  <a
+                    href="https://picpan.io/terms_of_services.html"
+                    target="_blank"
+                    className="text-primary"
+                  >
                     terms and agreement
                   </a>{" "}
-                  of Picpan service
+                  <span className="text-center">of Picpan service</span>
                 </label>
               </div>
               <button
@@ -448,9 +452,9 @@ const SettingSpace = ({ space, setSpace, address }) => {
       <div className={`${space.plan === "Free" && "hidden"}`}>
         <h3 className="text-primary mb-[20px]">Bill period</h3>
 
-        <div className="flex items-center gap-[0.5rem]">
+        <div className="flex max-[361px]:flex-col items-center gap-[0.5rem]">
           <button
-            className={`h-[38px] px-6 bg-ninety transition-all rounded-[8px] border   ${
+            className={`max-[361px]:w-full h-[38px] px-6 bg-ninety transition-all rounded-[8px] border   ${
               space.billPeriod == "Monthly"
                 ? "border-primary"
                 : "border-transparent"
@@ -462,7 +466,7 @@ const SettingSpace = ({ space, setSpace, address }) => {
             Monthly
           </button>
           <button
-            className={`h-[38px] px-6 bg-ninety transition-all rounded-[8px] border ${
+            className={`max-[361px]:w-full h-[38px] px-6 bg-ninety transition-all rounded-[8px] border ${
               space.billPeriod == "Annually"
                 ? "border-primary"
                 : "border-transparent"

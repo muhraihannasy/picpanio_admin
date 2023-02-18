@@ -13,7 +13,7 @@ import Alert from "../../components/alert/alert";
 import Loading from "../../components/loading";
 
 const Signup = () => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",

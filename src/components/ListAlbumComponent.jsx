@@ -10,9 +10,16 @@ const ListAlbumComponent = ({
   setCurrentAlbum,
   currentAlbum,
   setPath,
+  openModal,
 }) => {
   return (
-    <div className="max-[836px]:w-[300px] max-[836px]:h-full w-[240px] h-[591px] bg-[#F5F5F5] pb-[5px] rounded-tl-[6px] rounded-bl-[6px] border-l-2 border-b-2 overflow-y-auto overflow-x-hidden list-album fixed z-[99] top-0 left-0">
+    <div
+      className={`max-[836px]:w-[300px] max-[836px]:h-full w-[240px] h-[591px] bg-[#F5F5F5] pb-[5px] rounded-tl-[6px] rounded-bl-[6px] border-l-2 border-b-2 overflow-y-auto overflow-x-hidden list-album max-[836px]:fixed max-[836px]:z-[99] max-[836px]:top-0 transition-all ${
+        openModal.showAlbum
+          ? "max-[836px]:visible max-[836px]:left-0"
+          : "max-[836px]:invisible max-[836px]:left-[-10rem]"
+      }`}
+    >
       {/* absolute opacity-0 */}
       <ul>
         {listItem.length === 0 && (
@@ -33,6 +40,10 @@ const ListAlbumComponent = ({
                     setLastChangedAlbum(new Date());
                     setCurrentAlbum(item.id);
                     setPath("root");
+                    setOpenModal((prev) => ({
+                      ...prev,
+                      showAlbum: false,
+                    }));
                   }}
                 >
                   <p className="w-[160px] overflow-hidden">

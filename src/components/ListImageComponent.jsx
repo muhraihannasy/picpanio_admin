@@ -49,6 +49,11 @@ const ListImageComponent = ({
           </div>
         </li>
       )}
+      {listFolders.length == 0 && listFiles.length == 0 ? (
+        <h2 className="text-center mt-[5rem]">No Folder & Files</h2>
+      ) : (
+        ""
+      )}
       {listFolders &&
         listFolders.map((item) => {
           return (
@@ -126,7 +131,7 @@ const ListImageComponent = ({
               </div>
 
               <div className="flex items-center gap-[2rem] item-image">
-                <h3 className="text-eighty text-[12px] item-image">
+                <h3 className="text-eighty text-[12px] item-image max-[836px]:hidden block">
                   18/10/22 22:10
                 </h3>
 

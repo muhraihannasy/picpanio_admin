@@ -27,6 +27,8 @@ const HeaderDashboardComponent = () => {
   }
 
   function handleLogout() {
+    setMobileNavbar(false);
+
     apiRequest(`${BASEURL}/auth/logout`, requestSetting("POST")).then((res) => {
       if (res.message == "The token is malformed.")
         navigate("/login", { replace: true });
@@ -130,12 +132,12 @@ const HeaderDashboardComponent = () => {
           </li>
           <li>
             <Link
-              to={Route.DashboardImages}
+              to={Route.DashboardSpaces}
               className={`${
-                location.pathname == Route.DashboardImages && "font-bold"
+                location.pathname == Route.DashboardSpaces && "font-bold"
               }`}
             >
-              Images
+              Spaces
             </Link>
           </li>
           <li>
@@ -147,6 +149,19 @@ const HeaderDashboardComponent = () => {
             >
               API Integration
             </Link>
+          </li>
+          <li>
+            <Link
+              to={Route.DashboardAccount}
+              className={`${
+                location.pathname == Route.DashboardAccount && "font-bold"
+              }`}
+            >
+              Account
+            </Link>
+          </li>
+          <li>
+            <button onClick={handleLogout}>Logout</button>
           </li>
         </ul>
       </nav>

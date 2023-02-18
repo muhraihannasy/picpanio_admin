@@ -182,8 +182,8 @@ const Users = () => {
               Users
             </h2>
 
-            <div className="flex gap-12">
-              <div className="w-[400px] bg-ninety shadow rounded-[4px] px-5 py-6">
+            <div className="flex max-[836px]:flex-col gap-12 ">
+              <div className="max-[836px]:w-full w-[400px] bg-ninety shadow rounded-[4px] px-5 py-6">
                 <form onSubmit={handleSubmit}>
                   <div>
                     <label htmlFor="email">Email</label>
@@ -345,7 +345,7 @@ const InvitationTable = ({ items, onCancel }) => {
 
 const MemberTable = ({ items, onDeleteMember }) => {
   const styleParagraf = "font-regular text-[14px] text-eighty w-[90%]";
-  const styleTable = "w-full relative";
+  const styleTable = "max-[836px]:w-[60rem] relative";
   const styleTrHead = "pb-[20px]";
   const styleTh =
     "text-eighty text-[16px] text-left  text-eighty md:whitespace-normal whitespace-nowrap pr-3";
@@ -354,46 +354,50 @@ const MemberTable = ({ items, onDeleteMember }) => {
   return (
     <div>
       <h2 className="text-primary text-[18px] font-bold mb-[1rem]">Members</h2>
-      <table className={styleTable}>
-        <thead className="py-[2rem] ">
-          <tr className={styleTrHead}>
-            <th className={`${styleTh} w-[8rem] pb-[0.5rem]`}>Name</th>
-            <th className={`${styleTh} w-[16rem] pb-[0.5rem]`}>Email</th>
-            <th className={`${styleTh} w-[6rem] pb-[0.5rem] pr-5`}>Role</th>
-            <th className={`${styleTh} w-[6rem] pb-[0.5rem] pr-5`}>Status</th>
+      <div className="overflow-x-auto">
+        <table className={styleTable}>
+          <thead className="py-[2rem] ">
+            <tr className={styleTrHead}>
+              <th className={`${styleTh} w-[8rem] pb-[0.5rem]`}>Name</th>
+              <th className={`${styleTh} w-[16rem] pb-[0.5rem]`}>Email</th>
+              <th className={`${styleTh} w-[6rem] pb-[0.5rem] pr-5`}>Role</th>
+              <th className={`${styleTh} w-[6rem] pb-[0.5rem] pr-5`}>Status</th>
 
-            <th className="w-[12rem]"></th>
-          </tr>
-        </thead>
-        <tbody className="pt-[5rem]">
-          {items &&
-            items.map((item, index) => (
-              <tr key={index}>
-                <td className={`${styleTd} text-eighty`}>{item?.user?.name}</td>
-                <td className={`${styleTd} text-eighty `}>
-                  {item?.user?.email}
-                </td>
-                <td className={`${styleTd} text-eighty pr-5 text-left`}>
-                  {item.role}
-                </td>
-                <td
-                  className={`${styleTd}  pr-5 text-left ${
-                    item.status == "Active" ? "text-ten" : "text-primary"
-                  }`}
-                >
-                  Active
-                </td>
+              <th className="w-[12rem]"></th>
+            </tr>
+          </thead>
+          <tbody className="pt-[5rem]">
+            {items &&
+              items.map((item, index) => (
+                <tr key={index}>
+                  <td className={`${styleTd} text-eighty`}>
+                    {item?.user?.name}
+                  </td>
+                  <td className={`${styleTd} text-eighty `}>
+                    {item?.user?.email}
+                  </td>
+                  <td className={`${styleTd} text-eighty pr-5 text-left`}>
+                    {item.role}
+                  </td>
+                  <td
+                    className={`${styleTd}  pr-5 text-left ${
+                      item.status == "Active" ? "text-ten" : "text-primary"
+                    }`}
+                  >
+                    Active
+                  </td>
 
-                <td className="text-primary">
-                  {" "}
-                  <button onClick={() => onDeleteMember(item?.user.id)}>
-                    <GoTrashcan className="text-third text-[1.45rem]" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+                  <td className="text-primary">
+                    {" "}
+                    <button onClick={() => onDeleteMember(item?.user.id)}>
+                      <GoTrashcan className="text-third text-[1.45rem]" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

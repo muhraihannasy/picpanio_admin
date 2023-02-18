@@ -62,11 +62,11 @@ const ModalImageDetailComponent = ({
 
   return (
     <aside
-      className={`fixed top-0 h-full w-[540px] bg-white shadow-lg z-[999] px-[2rem] py-[2rem] transition-all ${
+      className={`fixed top-0 h-full pb-[1rem] max-[603px]:w-[90%] w-[540px] bg-white shadow-lg z-[9999] px-[2rem] py-[2rem] transition-all max-[639px]:overflow-y-auto ${
         openModal ? "right-0" : "right-[-100rem]"
       }`}
     >
-      <div className="flex justify-between gap-4">
+      <div className="flex max-[639px]:flex-col justify-between gap-4">
         <div>
           <h2 className="text-[14px] text-primary font-bold mb-[10px]">
             Sample image one
@@ -104,7 +104,7 @@ const ModalImageDetailComponent = ({
           </div>
         </div>
 
-        <div className="w-[35rem] h-[15rem] overflow-hidden bg-ninety rounded-[10px] flex items-center justify-center">
+        <div className="max-[603px]:w-full w-[35rem] h-[15rem] overflow-hidden bg-ninety rounded-[10px] flex items-center justify-center">
           <img src={image} alt="" className="" />
         </div>
       </div>
@@ -112,14 +112,14 @@ const ModalImageDetailComponent = ({
       <div className="mt-[1.6rem]">
         <h2 className="text-[12px] font-bold">Image processing</h2>
 
-        <div className="grid sm:grid-cols-4 grid-cols-2">
+        <div className="grid sm:grid-cols-4 grid-cols-2 max-[639px]:gap-x-3">
           <div className="flex flex-col gap-[4px] mt-[0.5rem]">
             <label htmlFor="" className="text-[11px]">
               Width
             </label>
             <input
               type="text"
-              className="w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
+              className="max-[639px]:w-full w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
               onChange={(e) =>
                 setImageProperties({
                   ...imageProperties,
@@ -135,7 +135,7 @@ const ModalImageDetailComponent = ({
             </label>
             <input
               type="text"
-              className="w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
+              className="max-[639px]:w-full w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
               onChange={(e) =>
                 setImageProperties({
                   ...imageProperties,
@@ -151,7 +151,7 @@ const ModalImageDetailComponent = ({
             </label>
             <input
               type="text"
-              className="w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
+              className="max-[639px]:w-full w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
               onChange={(e) =>
                 setImageProperties({
                   ...imageProperties,
@@ -168,7 +168,7 @@ const ModalImageDetailComponent = ({
             <select
               name=""
               id=""
-              className="w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
+              className="max-[639px]:w-full w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
               onChange={(e) =>
                 setImageProperties({
                   ...imageProperties,
@@ -192,7 +192,7 @@ const ModalImageDetailComponent = ({
             <select
               name=""
               id=""
-              className="w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
+              className="max-[639px]:w-full w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
               onChange={(e) =>
                 setImageProperties({
                   ...imageProperties,
@@ -214,7 +214,7 @@ const ModalImageDetailComponent = ({
             <select
               name=""
               id=""
-              className="w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
+              className="max-[639px]:w-full w-[100px] h-[24px] rounded-[4px] outline-none border border-seventy text-[11px] text-center px-2"
               onChange={(e) =>
                 setImageProperties({
                   ...imageProperties,
